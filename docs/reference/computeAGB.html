@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Biomass computation — computeAGB • AGBfluxes</title>
+<title>Biomass computation. — computeAGB • AGBfluxes</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -30,9 +30,12 @@
 
 
 
-<meta property="og:title" content="Biomass computation — computeAGB" />
+<meta property="og:title" content="Biomass computation. — computeAGB" />
 
-<meta property="og:description" content="Allocate wood density and compute above-ground biomass using the updated model of Chave et al. (2014), given in Rejou-Mechain et al. (2017). Palm trees (palm=T) are computed using a different allometric model (Goodman et al. 2013)." />
+<meta property="og:description" content="Allocate wood density and compute above-ground biomass using the updated
+model of Chave et al. (2014), given in Rejou-Mechain et al. (2017). Palm
+trees (palm=T) are computed using a different allometric model (Goodman et
+al. 2013)." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -61,7 +64,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">AGBfluxes</a>
-        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">0.0.0.9000</span>
+        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">0.0.0.9001</span>
       </span>
     </div>
 
@@ -92,14 +95,17 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Biomass computation</h1>
+    <h1>Biomass computation.</h1>
     
     <div class="hidden name"><code>computeAGB.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Allocate wood density and compute above-ground biomass using the updated model of Chave et al. (2014), given in Rejou-Mechain et al. (2017). Palm trees (palm=T) are computed using a different allometric model (Goodman et al. 2013).</p>
+    <p>Allocate wood density and compute above-ground biomass using the updated
+model of Chave et al. (2014), given in Rejou-Mechain et al. (2017). Palm
+trees (palm=T) are computed using a different allometric model (Goodman et
+al. 2013).</p>
     
     </div>
 
@@ -110,29 +116,33 @@
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>df</th>
-      <td><p>the data.frame on which AGB shall be computed</p></td>
+      <td><p>The data.frame on which AGB shall be computed.</p></td>
     </tr>
     <tr>
       <th>use_palm_allometry</th>
-      <td><p>TRUE or FALSE, if TRUE, biomass of palm trees is computed through a specific allometric model (Goodman et al. 2013). Only valid for South America.</p></td>
+      <td><p><code>TRUE</code> or <code>FALSE</code>, if <code>TRUE</code>  biomass of palm trees
+is computed through a specific allometric model (Goodman et al. 2013). Only
+valid for South America.</p></td>
     </tr>
     <tr>
       <th>DBH</th>
-      <td><p>optional, specify the variable to be used (e.g. "dbh" or "dbh_corrected")</p></td>
+      <td><p>Optional, specify the variable to be used (e.g. "dbh" or
+"dbh_corrected").</p></td>
     </tr>
     <tr>
       <th>WD</th>
-      <td><p>optional, provide an external data.frame of wood densities by species</p></td>
+      <td><p>Optional, provide an external data.frame of wood densities by
+species.</p></td>
     </tr>
     <tr>
       <th>H</th>
-      <td><p>optional, specify the column with height measurments</p></td>
+      <td><p>Optional, specify the column with height measurments.</p></td>
     </tr>
     </table>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>a data.table (data.frame) with all relevant variables.</p>
+    <p>A data.table (data.frame) with all relevant variables.</p>
     
 
   </div>

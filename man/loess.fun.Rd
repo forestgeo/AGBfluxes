@@ -2,20 +2,22 @@
 % Please edit documentation in R/AGBfluxes_functions.R
 \name{loess.fun}
 \alias{loess.fun}
-\title{Loess}
+\title{Loess.}
 \usage{
 loess.fun(x, var, range, weights = NULL)
 }
 \arguments{
-\item{x}{a data.table}
+\item{x}{A data.table.}
 
-\item{var}{the name of the variable to be smoothed again intial AGB}
+\item{var}{The name of the variable to be smoothed again intial AGB.}
 
-\item{range}{the range of initial AGB to be used for prediction (i.e. 5th and 95th percentiles of the whole distribution)}
+\item{range}{The range of initial AGB to be used for prediction (i.e. 5th and
+95th percentiles of the whole distribution).}
 }
 \value{
-a smoothed prediction of the variable of interest
+A smoothed prediction of the variable of interest.
 }
 \description{
-a wrapper to get smoothed predictions of AGB fluxes using a loess function (library 'locfit')
+A wrapper to get smoothed predictions of AGB fluxes using a loess function
+(library 'locfit').
 }

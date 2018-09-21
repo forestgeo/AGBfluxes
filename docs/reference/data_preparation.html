@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>CTFS-formated data preparation — data_preparation • AGBfluxes</title>
+<title>CTFS-formated data preparation. — data_preparation • AGBfluxes</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -30,9 +30,10 @@
 
 
 
-<meta property="og:title" content="CTFS-formated data preparation — data_preparation" />
+<meta property="og:title" content="CTFS-formated data preparation. — data_preparation" />
 
-<meta property="og:description" content="Main routine to format, detect major obvious errors, and gap-fill those errors in CTFS-formated data" />
+<meta property="og:description" content="Main routine to format, detect major obvious errors, and gap-fill those
+errors in CTFS-formated data." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -61,7 +62,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">AGBfluxes</a>
-        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">0.0.0.9000</span>
+        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">0.0.0.9001</span>
       </span>
     </div>
 
@@ -92,14 +93,15 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>CTFS-formated data preparation</h1>
+    <h1>CTFS-formated data preparation.</h1>
     
     <div class="hidden name"><code>data_preparation.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Main routine to format, detect major obvious errors, and gap-fill those errors in CTFS-formated data</p>
+    <p>Main routine to format, detect major obvious errors, and gap-fill those
+errors in CTFS-formated data.</p>
     
     </div>
 
@@ -113,59 +115,98 @@
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>site</th>
-      <td><p>the full name of your site (in lower case); e.g., 'barro colorado island'</p></td>
+      <td><p>The full name of your site (in lower case); e.g., 'barro colorado
+island'.</p></td>
     </tr>
     <tr>
       <th>stem</th>
-      <td><p>TRUE or FALSE, using the stem data (stem=TRUE) rather than the tree data (i.e. called 'full', stem=FALSE)</p></td>
+      <td><p><code>TRUE</code> or <code>FALSE</code>, using the stem data (<code>stem = TRUE</code>) rather
+than the tree data (i.e. called 'full', <code>stem = FALSE</code>).</p></td>
     </tr>
     <tr>
       <th>taper_correction</th>
-      <td><p>TRUE or FALSE, apply Cushman et al (2014) taper correction</p></td>
+      <td><p><code>TRUE</code> or <code>FALSE</code>, apply Cushman et al (2014) taper
+correction.</p></td>
     </tr>
     <tr>
       <th>fill_missing</th>
-      <td><p>TRUE or FALSE, interpolate missing DBH values</p></td>
+      <td><p><code>TRUE</code> or <code>FALSE</code>, interpolate missing DBH values.</p></td>
     </tr>
     <tr>
       <th>use_palm_allometry</th>
-      <td><p>TRUE or FALSE, if TRUE, compute biomass of palm trees using a palm-specific allometric model from Goodman et al. (2013)</p></td>
+      <td><p><code>TRUE</code> or <code>FALSE</code>, if <code>TRUE</code>, compute biomass of
+palm trees using a palm-specific allometric model from Goodman et al.
+(2013).</p></td>
     </tr>
     <tr>
       <th>dbh_stranglers</th>
-      <td><p>(optional) minimal diameter (in mm) of strangler figs, default = 500</p></td>
+      <td><p>(optional) Minimal diameter (in mm) of strangler figs,
+default = 500.</p></td>
     </tr>
     <tr>
       <th>maxrel</th>
-      <td><p>a numeric value: the threshold for flagging major errors in productivity, applied as absval(individual tree productivity)&gt;maxrel*(average productivity per hectare)</p></td>
+      <td><p>A numeric value: the threshold for flagging major errors in
+productivity, applied as <code>absval(individual-tree-productivity) &gt; maxrel * (average-productivity-per-hectare)</code>.</p></td>
     </tr>
     <tr>
       <th>output_errors</th>
-      <td><p>TRUE or FALSE, output all records for trees with major errors in productivity to a csv file</p></td>
+      <td><p><code>TRUE</code> or <code>FALSE</code>, output all records for trees with
+major errors in productivity to a csv file.</p></td>
     </tr>
     <tr>
       <th>DATA_path</th>
-      <td><p>the pathname where the data are located</p></td>
+      <td><p>The pathname where the data are located.</p></td>
     </tr>
     <tr>
       <th>exclude_interval</th>
-      <td><p>NULL by default. If needed a vector (e.g. c(1,2)) indicating which census interval(s) must be discarded from computation due, for instance, to a change in measurement protocol</p></td>
+      <td><p><code>NULL</code> by default. If needed a vector (e.g. c(1,2))
+indicating which census interval(s) must be discarded from computation due,
+for instance, to a change in measurement protocol.</p></td>
     </tr>
     <tr>
       <th>flag_stranglers</th>
-      <td><p>TRUE or FALSE, individuals of known strangler fig species greater than 'dbh_stranglers' are flagged</p></td>
+      <td><p><code>TRUE</code> or <code>FALSE</code>, individuals of known strangler fig
+species greater than 'dbh_stranglers' are flagged</p></td>
     </tr>
     </table>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>a data.table (data.frame) with all relevant variables.</p>
+    <p>A data.table (data.frame) with all relevant variables.</p>
     
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='co'># Not run</span>
-<span class='fu'>data_preparation</span>(<span class='kw'>site</span><span class='kw'>=</span><span class='st'>"barro colorado island"</span>,<span class='kw'>stem</span><span class='kw'>=</span><span class='no'>T</span>,<span class='kw'>taper_correction</span><span class='kw'>=</span><span class='no'>T</span>,<span class='kw'>fill_missing</span><span class='kw'>=</span><span class='no'>T</span>,<span class='kw'>use_palm_allometry</span><span class='kw'>=</span><span class='no'>T</span>,<span class='kw'>flag_strangler</span><span class='kw'>=</span><span class='no'>T</span>,<span class='kw'>dbh_stranglers</span><span class='kw'>=</span><span class='fl'>500</span>,<span class='kw'>maxrel</span><span class='kw'>=</span><span class='fl'>0.2</span>,<span class='kw'>graph_problem_trees</span><span class='kw'>=</span><span class='no'>T</span>,<span class='kw'>output_errors</span><span class='kw'>=</span><span class='no'>T</span>,<span class='kw'>DATA_path</span><span class='kw'>=</span><span class='kw'>NULL</span>,<span class='kw'>exclude_interval</span><span class='kw'>=</span><span class='kw'>NULL</span>)</div><div class='output co'>#&gt; <span class='error'>Error in list.files(DATA_path): invalid 'path' argument</span></div><div class='input'>
-</div></pre>
+    <pre class="examples"># NOT RUN {
+data_preparation(
+  site = "barro colorado island",
+  stem = TURE,
+  taper_correction = TURE,
+  fill_missing = TURE,
+  use_palm_allometry = TURE,
+  flag_strangler = TURE,
+  dbh_stranglers = 500,
+  maxrel = 0.2,
+  graph_problem_trees = TURE,
+  output_errors = TURE,
+  DATA_path = NULL,
+  exclude_interval = NULL
+)
+
+FIXME: What is this? These variable are defined but not used.
+site = "barro colorado island"
+stem = TURE
+taper_correction = TURE
+fill_missing = TURE
+use_palm_allometry = TURE
+flag_strangler = TURE
+dbh_stranglers = 500
+maxrel = 0.2
+graph_problem_trees = TURE
+output_errors = TURE
+DATA_path = NULL
+exclude_interval = NULL
+# }
+</pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>

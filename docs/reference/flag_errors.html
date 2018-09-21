@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Flag major errors — flag_errors • AGBfluxes</title>
+<title>Flag major errors. — flag_errors • AGBfluxes</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -30,9 +30,14 @@
 
 
 
-<meta property="og:title" content="Flag major errors — flag_errors" />
+<meta property="og:title" content="Flag major errors. — flag_errors" />
 
-<meta property="og:description" content="Identify trees with major errors in DBH measurments. A major error correspond to a relative individal productivity (or growth) is above a given percentage (set by 'maxrel') of the mean productivity computed at a site. Additionnaly, flagged trees that died at next census interval are also flagged. Option to see DBH measurement (=draw.graph) of flagged trees or print a csv (output_errors) are given." />
+<meta property="og:description" content="Identify trees with major errors in DBH measurments. A major error correspond
+to a relative individal productivity (or growth) is above a given percentage
+(set by 'maxrel') of the mean productivity computed at a site. Additionnaly,
+flagged trees that died at next census interval are also flagged. Option to
+see DBH measurement (=draw.graph) of flagged trees or print a csv
+(output_errors) are given." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -61,7 +66,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">AGBfluxes</a>
-        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">0.0.0.9000</span>
+        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">0.0.0.9001</span>
       </span>
     </div>
 
@@ -92,14 +97,19 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Flag major errors</h1>
+    <h1>Flag major errors.</h1>
     
     <div class="hidden name"><code>flag_errors.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Identify trees with major errors in DBH measurments. A major error correspond to a relative individal productivity (or growth) is above a given percentage (set by 'maxrel') of the mean productivity computed at a site. Additionnaly, flagged trees that died at next census interval are also flagged. Option to see DBH measurement (=draw.graph) of flagged trees or print a csv (output_errors) are given.</p>
+    <p>Identify trees with major errors in DBH measurments. A major error correspond
+to a relative individal productivity (or growth) is above a given percentage
+(set by 'maxrel') of the mean productivity computed at a site. Additionnaly,
+flagged trees that died at next census interval are also flagged. Option to
+see DBH measurement (=draw.graph) of flagged trees or print a csv
+(output_errors) are given.</p>
     
     </div>
 
@@ -111,33 +121,39 @@
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>DF</th>
-      <td><p>a data.table</p></td>
+      <td><p>A data.table.</p></td>
     </tr>
     <tr>
       <th>site</th>
-      <td><p>provide the full name of your site (in lower case) i.e. 'barro colorado island'</p></td>
+      <td><p>Provide the full name of your site (in lower case) i.e. 'barro
+colorado island'.</p></td>
     </tr>
     <tr>
       <th>maxrel</th>
-      <td><p>a numeric value setting the threshold over which relative productivity is assumed to be too high (usually set at 20 percents)</p></td>
+      <td><p>A numeric value setting the threshold over which relative
+productivity is assumed to be too high (usually set at 20 percents).</p></td>
     </tr>
     <tr>
       <th>output_errors</th>
-      <td><p>TRUE or FALSE, output all records for trees with major errors in productivity to a csv file</p></td>
+      <td><p><code>TRUE</code> or <code>FALSE</code>, output all records for trees with
+major errors in productivity to a csv file.</p></td>
     </tr>
     <tr>
       <th>exclude_interval</th>
-      <td><p>a vector (i.e. c(1,2)) indicating if a set of census intervals must be discarded from computation due for instance to a change in  protocol of measurment</p></td>
+      <td><p>A vector (i.e. c(1,2)) indicating if a set of census
+intervals must be discarded from computation due for instance to a change
+in  protocol of measurment.</p></td>
     </tr>
     <tr>
       <th>strangler</th>
-      <td><p>TRUE or FALSE, if TRUE, strangler figs tree are flagged (upon a list to published soon)</p></td>
+      <td><p><code>TRUE</code> or <code>FALSE</code>, if <code>TRUE</code>  strangler figs tree are
+flagged (upon a list to published soon).</p></td>
     </tr>
     </table>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>a data.table (data.frame) with all relevant variables.</p>
+    <p>A data.table (data.frame) with all relevant variables.</p>
     
 
   </div>

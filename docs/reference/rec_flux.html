@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Unbiased recruitment flux — rec_flux • AGBfluxes</title>
+<title>Compute unbiased recruitment flux and loss flux. — rec_flux • AGBfluxes</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -30,9 +30,10 @@
 
 
 
-<meta property="og:title" content="Unbiased recruitment flux — rec_flux" />
+<meta property="og:title" content="Compute unbiased recruitment flux and loss flux. — rec_flux" />
 
-<meta property="og:description" content="Compute unbiased recruitment rate (i.e. account for unmeasured recruitment)" />
+<meta property="og:description" content="rec_flux() and loss_flux() compute unbiased recruitment flux and loss
+flux, respectively." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -61,7 +62,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">AGBfluxes</a>
-        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">0.0.0.9000</span>
+        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">0.0.0.9001</span>
       </span>
     </div>
 
@@ -92,43 +93,46 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Unbiased recruitment flux</h1>
+    <h1>Compute unbiased recruitment flux and loss flux.</h1>
     
     <div class="hidden name"><code>rec_flux.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Compute unbiased recruitment rate (i.e. account for unmeasured recruitment)</p>
+    <p><code>rec_flux()</code> and <code>loss_flux()</code> compute unbiased recruitment flux and loss
+flux, respectively.</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>rec_flux</span>(<span class='no'>A0</span>, <span class='no'>A1</span>, <span class='no'>S1</span>, <span class='no'>area</span>, <span class='no'>time</span>)</pre>
+    <pre class="usage"><span class='fu'>rec_flux</span>(<span class='no'>A0</span>, <span class='no'>A1</span>, <span class='no'>S1</span>, <span class='no'>area</span>, <span class='no'>time</span>)
+
+<span class='fu'>loss_flux</span>(<span class='no'>A0</span>, <span class='no'>A1</span>, <span class='no'>S1</span>, <span class='no'>area</span>, <span class='no'>time</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>A0</th>
-      <td><p>biomass at initial census.</p></td>
+      <td><p>Biomass at initial census.</p></td>
     </tr>
     <tr>
       <th>A1</th>
-      <td><p>biomass of alive trees at final census.</p></td>
+      <td><p>Biomass of alive trees at final census.</p></td>
     </tr>
     <tr>
       <th>S1</th>
-      <td><p>initial biomass of individuals that survived to time t</p></td>
+      <td><p>Initial biomass of individuals that survived to time t.</p></td>
     </tr>
     <tr>
       <th>time</th>
-      <td><p>cenusus interval in year</p></td>
+      <td><p>Cenusus interval in year.</p></td>
     </tr>
     </table>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>absolute recruitment flux in <!-- % per year --></p>
+    <p>Absolute recruitment flux in <!-- % per year. --></p>
     
 
   </div>

@@ -2,24 +2,31 @@
 % Please edit documentation in R/AGBfluxes_functions.R
 \name{computeAGB}
 \alias{computeAGB}
-\title{Biomass computation}
+\title{Biomass computation.}
 \usage{
 computeAGB(df, use_palm_allometry, DBH = NULL, WD = NULL, H = NULL)
 }
 \arguments{
-\item{df}{the data.frame on which AGB shall be computed}
+\item{df}{The data.frame on which AGB shall be computed.}
 
-\item{use_palm_allometry}{TRUE or FALSE, if TRUE, biomass of palm trees is computed through a specific allometric model (Goodman et al. 2013). Only valid for South America.}
+\item{use_palm_allometry}{\code{TRUE} or \code{FALSE}, if \code{TRUE}  biomass of palm trees
+is computed through a specific allometric model (Goodman et al. 2013). Only
+valid for South America.}
 
-\item{DBH}{optional, specify the variable to be used (e.g. "dbh" or "dbh_corrected")}
+\item{DBH}{Optional, specify the variable to be used (e.g. "dbh" or
+"dbh_corrected").}
 
-\item{WD}{optional, provide an external data.frame of wood densities by species}
+\item{WD}{Optional, provide an external data.frame of wood densities by
+species.}
 
-\item{H}{optional, specify the column with height measurments}
+\item{H}{Optional, specify the column with height measurments.}
 }
 \value{
-a data.table (data.frame) with all relevant variables.
+A data.table (data.frame) with all relevant variables.
 }
 \description{
-Allocate wood density and compute above-ground biomass using the updated model of Chave et al. (2014), given in Rejou-Mechain et al. (2017). Palm trees (palm=T) are computed using a different allometric model (Goodman et al. 2013).
+Allocate wood density and compute above-ground biomass using the updated
+model of Chave et al. (2014), given in Rejou-Mechain et al. (2017). Palm
+trees (palm=T) are computed using a different allometric model (Goodman et
+al. 2013).
 }

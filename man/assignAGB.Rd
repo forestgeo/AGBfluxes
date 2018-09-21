@@ -2,22 +2,26 @@
 % Please edit documentation in R/AGBfluxes_functions.R
 \name{assignAGB}
 \alias{assignAGB}
-\title{Assign AGB}
+\title{Assign AGB.}
 \usage{
 assignAGB(DAT, DBH = NULL, H = NULL)
 }
 \arguments{
-\item{H}{a column name (e.g. "height") or data.set with tree heights (optional)}
+\item{H}{A column name (e.g. "height") or data.set with tree heights
+(optional).}
 
-\item{site}{provide the full name of your site (in lower case) i.e. 'barro colorado island'}
+\item{site}{Provide the full name of your site (in lower case) i.e. 'barro
+colorado island'.}
 
-\item{D}{a column with tree diameters (in mm)}
+\item{D}{A column with tree diameters (in mm).}
 
-\item{WD}{a column name (e.g. "wsg") or data.set with wood densities (optional)}
+\item{WD}{A column name (e.g. "wsg") or data.set with wood densities
+(optional).}
 }
 \value{
-a vector with AGB values (in Mg)
+A vector with AGB values (in Mg).
 }
 \description{
-Compute above-ground biomass using the updated model of Chave et al. (2014), given in Rejou-Mechain et al. (2017)
+Compute above-ground biomass using the updated model of Chave et al. (2014),
+given in Rejou-Mechain et al. (2017).
 }

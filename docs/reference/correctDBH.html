@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Data correction — correctDBH • AGBfluxes</title>
+<title>Data correction. — correctDBH • AGBfluxes</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -30,9 +30,11 @@
 
 
 
-<meta property="og:title" content="Data correction — correctDBH" />
+<meta property="og:title" content="Data correction. — correctDBH" />
 
-<meta property="og:description" content="Perform two mains tasks: (a) apply a taper correction when POM is &amp;gt; 130 cm, and (b) linear interpolation values when missing DBHs. Interpolation of missing values is done by averaging surrounding available DBH values." />
+<meta property="og:description" content="Perform two mains tasks: (a) apply a taper correction when POM is &amp;gt; 130 cm,
+and (b) linear interpolation values when missing DBHs. Interpolation of
+missing values is done by averaging surrounding available DBH values." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -61,7 +63,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">AGBfluxes</a>
-        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">0.0.0.9000</span>
+        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">0.0.0.9001</span>
       </span>
     </div>
 
@@ -92,14 +94,16 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Data correction</h1>
+    <h1>Data correction.</h1>
     
     <div class="hidden name"><code>correctDBH.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Perform two mains tasks: (a) apply a taper correction when POM is &gt; 130 cm, and (b) linear interpolation values when missing DBHs. Interpolation of missing values is done by averaging surrounding available DBH values.</p>
+    <p>Perform two mains tasks: (a) apply a taper correction when POM is &gt; 130 cm,
+and (b) linear interpolation values when missing DBHs. Interpolation of
+missing values is done by averaging surrounding available DBH values.</p>
     
     </div>
 
@@ -110,21 +114,23 @@
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>taper_correction</th>
-      <td><p>TRUE or FALSE, are you willing to apply Cushman et al (2014) taper correction?</p></td>
+      <td><p><code>TRUE</code> or <code>FALSE</code>, are you willing to apply Cushman
+et al (2014) taper correction?</p></td>
     </tr>
     <tr>
       <th>fill_missing</th>
-      <td><p>TRUE or FALSE, are you willing to extrapolate missing DBH from surrounding DBH?</p></td>
+      <td><p><code>TRUE</code> or <code>FALSE</code>, are you willing to extrapolate missing
+DBH from surrounding DBH?</p></td>
     </tr>
     <tr>
       <th>DF</th>
-      <td><p>a data.table</p></td>
+      <td><p>A data.table.</p></td>
     </tr>
     </table>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>a data.table (data.frame) with all relevant variables.</p>
+    <p>A data.table (data.frame) with all relevant variables.</p>
     
 
   </div>

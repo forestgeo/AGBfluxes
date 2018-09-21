@@ -1,25 +1,67 @@
-#' CTFS-formated data preparation
-#' @description Main routine to format, detect major obvious errors, and gap-fill those errors in CTFS-formated data
-#' @param site the full name of your site (in lower case); e.g., 'barro colorado island'
-#' @param stem TRUE or FALSE, using the stem data (stem=TRUE) rather than the tree data (i.e. called 'full', stem=FALSE)
-#' @param taper_correction TRUE or FALSE, apply Cushman et al (2014) taper correction
-#' @param fill_missing TRUE or FALSE, interpolate missing DBH values
-#' @param use_palm_allometry TRUE or FALSE, if TRUE, compute biomass of palm trees using a palm-specific allometric model from Goodman et al. (2013)
-#' @param flag_stranglers TRUE or FALSE, individuals of known strangler fig species greater than 'dbh_stranglers' are flagged
-#' @param dbh_stranglers (optional) minimal diameter (in mm) of strangler figs, default = 500
-#' @param maxrel a numeric value: the threshold for flagging major errors in productivity, applied as absval(individual tree productivity)>maxrel*(average productivity per hectare)
-#' @param output_errors TRUE or FALSE, output all records for trees with major errors in productivity to a csv file
-#' @param DATA_path the pathname where the data are located
-#' @param exclude_interval NULL by default. If needed a vector (e.g. c(1,2)) indicating which census interval(s) must be discarded from computation due, for instance, to a change in measurement protocol
-#' @return a data.table (data.frame) with all relevant variables.
-#' @export
-#' @examples
-#' # Not run
-#' data_preparation(site="barro colorado island",stem=T,taper_correction=T,fill_missing=T,use_palm_allometry=T,flag_strangler=T,dbh_stranglers=500,maxrel=0.2,graph_problem_trees=T,output_errors=T,DATA_path=NULL,exclude_interval=NULL)
+#' CTFS-formated data preparation.
 #'
-
-# site="barro colorado island";stem=T;taper_correction=T;fill_missing=T;use_palm_allometry=T;flag_strangler=T;dbh_stranglers=500;maxrel=0.2;graph_problem_trees=T;output_errors=T;DATA_path=NULL;exclude_interval=NULL
-
+#' Main routine to format, detect major obvious errors, and gap-fill those
+#' errors in CTFS-formated data.
+#'
+#' @param site The full name of your site (in lower case); e.g., 'barro colorado
+#'   island'.
+#' @param stem `TRUE` or `FALSE`, using the stem data (`stem = TRUE`) rather
+#'   than the tree data (i.e. called 'full', `stem = FALSE`).
+#' @param taper_correction `TRUE` or `FALSE`, apply Cushman et al (2014) taper
+#'   correction.
+#' @param fill_missing `TRUE` or `FALSE`, interpolate missing DBH values.
+#' @param use_palm_allometry `TRUE` or `FALSE`, if `TRUE`, compute biomass of
+#'   palm trees using a palm-specific allometric model from Goodman et al.
+#'   (2013).
+#' @param flag_stranglers `TRUE` or `FALSE`, individuals of known strangler fig
+#'   species greater than 'dbh_stranglers' are flagged
+#' @param dbh_stranglers (optional) Minimal diameter (in mm) of strangler figs,
+#'   default = 500.
+#' @param maxrel A numeric value: the threshold for flagging major errors in
+#'   productivity, applied as `absval(individual-tree-productivity) > maxrel *
+#'   (average-productivity-per-hectare)`.
+#' @param output_errors `TRUE` or `FALSE`, output all records for trees with
+#'   major errors in productivity to a csv file.
+#' @param DATA_path The pathname where the data are located.
+#' @param exclude_interval `NULL` by default. If needed a vector (e.g. c(1,2))
+#'   indicating which census interval(s) must be discarded from computation due,
+#'   for instance, to a change in measurement protocol.
+#'
+#' @return A data.table (data.frame) with all relevant variables.
+#'
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' data_preparation(
+#'   site = "barro colorado island",
+#'   stem = TURE,
+#'   taper_correction = TURE,
+#'   fill_missing = TURE,
+#'   use_palm_allometry = TURE,
+#'   flag_strangler = TURE,
+#'   dbh_stranglers = 500,
+#'   maxrel = 0.2,
+#'   graph_problem_trees = TURE,
+#'   output_errors = TURE,
+#'   DATA_path = NULL,
+#'   exclude_interval = NULL
+#' )
+#'
+#' FIXME: What is this? These variable are defined but not used.
+#' site = "barro colorado island"
+#' stem = TURE
+#' taper_correction = TURE
+#' fill_missing = TURE
+#' use_palm_allometry = TURE
+#' flag_strangler = TURE
+#' dbh_stranglers = 500
+#' maxrel = 0.2
+#' graph_problem_trees = TURE
+#' output_errors = TURE
+#' DATA_path = NULL
+#' exclude_interval = NULL
+#' }
 data_preparation <- function(site,stem,WD=NULL,taper_correction,fill_missing,use_palm_allometry,flag_strangler,dbh_stranglers,maxrel,graph_problem_trees,output_errors,DATA_path=NULL,exclude_interval=NULL) {
 	site <- tolower(site)
 	INDEX <- match(tolower(site),site.info$site)
@@ -69,14 +111,20 @@ data_preparation <- function(site,stem,WD=NULL,taper_correction,fill_missing,use
 	return(DF)
 }
 
-#' Trim and correct data
-#' @description Stack all censuses together and correct DBH, if required
-#' @param taper_correction TRUE or FALSE, are you willing to apply Cushman et al (2014) taper correction?
-#' @param fill_missing TRUE or FALSE, are you willing to extrapolate missing DBH from surrounding DBH?
-#' @param stem is the function applied over stem (stem=TRUE) or tree (stem=FALSE) data?
-#' @return a data.table (data.frame) with all relevant variables.
-#' @export
+#' Trim and correct data.
 #'
+#' Stack all censuses together and correct DBH, if required.
+#'
+#' @param taper_correction `TRUE` or `FALSE`, are you willing to apply Cushman
+#'   et al (2014) taper correction?
+#' @param fill_missing `TRUE` or `FALSE`, are you willing to extrapolate missing
+#'   DBH from surrounding DBH?
+#' @param stem Is the function applied over stem (stem=TRUE) or tree
+#'   (stem=FALSE) data?
+#'
+#' @return A data.table (data.frame) with all relevant variables.
+#'
+#' @export
 data_correction <- function(df,taper_correction,fill_missing,stem) {
 	if (stem) {
 		df[,"id" :=paste(treeID,stemID,sep="-")] # creat a unique tree-stem ID
@@ -104,14 +152,21 @@ data_correction <- function(df,taper_correction,fill_missing,stem) {
 	return(df)
 }
 
-#' Data correction
-#' @description Perform two mains tasks: (a) apply a taper correction when POM is > 130 cm, and (b) linear interpolation values when missing DBHs. Interpolation of missing values is done by averaging surrounding available DBH values.
-#' @param DF a data.table
-#' @param taper_correction TRUE or FALSE, are you willing to apply Cushman et al (2014) taper correction?
-#' @param fill_missing TRUE or FALSE, are you willing to extrapolate missing DBH from surrounding DBH?
-#' @return a data.table (data.frame) with all relevant variables.
+#' Data correction.
+#'
+#' Perform two mains tasks: (a) apply a taper correction when POM is > 130 cm,
+#' and (b) linear interpolation values when missing DBHs. Interpolation of
+#' missing values is done by averaging surrounding available DBH values.
+#'
+#' @param DF A data.table.
+#' @param taper_correction `TRUE` or `FALSE`, are you willing to apply Cushman
+#'   et al (2014) taper correction?
+#' @param fill_missing `TRUE` or `FALSE`, are you willing to extrapolate missing
+#'   DBH from surrounding DBH?
+#'
+#' @return A data.table (data.frame) with all relevant variables.
+#'
 #' @export
-
 correctDBH <- function(DT,taper_correction,fill_missing) {
 	dbh2 <- DT[status1=="A",'dbh'][[1]]
 	hom2 <- DT[status1=="A",round(hom*100)/100]   # round hom to be at 1.3 meter (avoiding odd rounding)
@@ -161,7 +216,7 @@ correctDBH <- function(DT,taper_correction,fill_missing) {
 
 	} else {# end of fill_missing
 
-		# Replicate dbh & hom if no NA values or fill_missing = FALSE
+		# Replicate dbh & hom if no NA values or fill_missing = `FALSE`
 		dbh2 <- DT[,'dbh'][[1]]
 		hom2 <- DT[,round(hom*100)/100]
 		hom2[is.na(hom2)] <- 1.3
@@ -175,16 +230,26 @@ correctDBH <- function(DT,taper_correction,fill_missing) {
 	return(list(dbh2,hom2))
 }
 
-#' Biomass computation
-#' @description Allocate wood density and compute above-ground biomass using the updated model of Chave et al. (2014), given in Rejou-Mechain et al. (2017). Palm trees (palm=T) are computed using a different allometric model (Goodman et al. 2013).
-#' @param df the data.frame on which AGB shall be computed
-#' @param DBH optional, specify the variable to be used (e.g. "dbh" or "dbh_corrected")
-#' @param WD optional, provide an external data.frame of wood densities by species
-#' @param H optional, specify the column with height measurments
-#' @param use_palm_allometry TRUE or FALSE, if TRUE, biomass of palm trees is computed through a specific allometric model (Goodman et al. 2013). Only valid for South America.
-#' @return a data.table (data.frame) with all relevant variables.
+#' Biomass computation.
+#'
+#' Allocate wood density and compute above-ground biomass using the updated
+#' model of Chave et al. (2014), given in Rejou-Mechain et al. (2017). Palm
+#' trees (palm=T) are computed using a different allometric model (Goodman et
+#' al. 2013).
+#'
+#' @param df The data.frame on which AGB shall be computed.
+#' @param DBH Optional, specify the variable to be used (e.g. "dbh" or
+#'   "dbh_corrected").
+#' @param WD Optional, provide an external data.frame of wood densities by
+#'   species.
+#' @param H Optional, specify the column with height measurments.
+#' @param use_palm_allometry `TRUE` or `FALSE`, if `TRUE`  biomass of palm trees
+#'   is computed through a specific allometric model (Goodman et al. 2013). Only
+#'   valid for South America.
+#'
+#' @return A data.table (data.frame) with all relevant variables.
+#'
 #' @export
-
 computeAGB <- function(df,use_palm_allometry,DBH=NULL,WD=NULL,H=NULL) {
 	if(!exists("DATA_path")){
 		DATA_path <<- paste0(path_folder,"/data/")
@@ -216,15 +281,21 @@ computeAGB <- function(df,use_palm_allometry,DBH=NULL,WD=NULL,H=NULL) {
 	return(df)
 }
 
-#' Assign wood density
-#' @description Assign wood density using CTFS wood density data base (WSG)
-#' @param df a data.table
-#' @param site provide the full name of your site (in lower case) i.e. 'barro colorado island'
-#' @param wsgdata a list of tree species (mnenomic) and corresponding wood density
-#' @param denscol the variable to be return ("wsg" by default). No other option is implemented.
-#' @return a data.table (data.frame) with all relevant variables.
+#' Assign wood density.
+#'
+#' Assign wood density using CTFS wood density data base (WSG).
+#'
+#' @param df A data.table.
+#' @param site Provide the full name of your site (in lower case) i.e. 'barro
+#'   colorado island'.
+#' @param wsgdata A list of tree species (mnenomic) and corresponding wood
+#'   density.
+#' @param denscol The variable to be return ("wsg" by default). No other option
+#'   is implemented.
+#'
+#' @return A data.table (data.frame) with all relevant variables.
+#'
 #' @export
-
 assignWD<- function (DAT, WD=NULL) {
 	if(is.null(DATA_path)){
 		DATA_path <<- paste0(path_folder,"/data/")
@@ -264,15 +335,22 @@ assignWD<- function (DAT, WD=NULL) {
 	return(DT)
 }
 
-#' Assign AGB
-#' @description Compute above-ground biomass using the updated model of Chave et al. (2014), given in Rejou-Mechain et al. (2017)
-#' @param site provide the full name of your site (in lower case) i.e. 'barro colorado island'
-#' @param D a column with tree diameters (in mm)
-#' @param WD a column name (e.g. "wsg") or data.set with wood densities (optional)
-#' @param H a column name (e.g. "height") or data.set with tree heights (optional)
-#' @return a vector with AGB values (in Mg)
+#' Assign AGB.
+#'
+#' Compute above-ground biomass using the updated model of Chave et al. (2014),
+#' given in Rejou-Mechain et al. (2017).
+#'
+#' @param site Provide the full name of your site (in lower case) i.e. 'barro
+#'   colorado island'.
+#' @param D A column with tree diameters (in mm).
+#' @param WD A column name (e.g. "wsg") or data.set with wood densities
+#'   (optional).
+#' @param H A column name (e.g. "height") or data.set with tree heights
+#'   (optional).
+#'
+#' @return A vector with AGB values (in Mg).
+#'
 #' @export
-
 assignAGB <- function (DAT,DBH=NULL,H=NULL) {
 	if(!is.null(DBH)){
 	D <- DAT[,get(DBH)] }  else { D <- DAT$dbh2}
@@ -298,14 +376,20 @@ assignAGB <- function (DAT,DBH=NULL,H=NULL) {
 	return(DAT)
 }
 
-#' Format census intervals
-#' @description Create census intervals (i.e. put consecutive census side by side), assign status by tree (i.e. alive (A),dead (D), recruited (R) or resprout (Rsp))
-#' @param df a data.table
-#' @param flag_stranglers TRUE or FALSE, individuals of known strangler fig species greater than 'dbh_stranglers' are flagged
-#' @param dbh_stranglers (optional) minimal diameter (in mm) of strangler figs, default = 500
-#' @return a formated data.table.
+#' Format census intervals.
+#'
+#' Create census intervals (i.e. put consecutive census side by side), assign
+#' status by tree (i.e. alive (A),dead (D), recruited (R) or resprout (Rsp)).
+#'
+#' @param df A data.table.
+#' @param flag_stranglers `TRUE` or `FALSE`, individuals of known strangler fig
+#'   species greater than 'dbh_stranglers' are flagged.
+#' @param dbh_stranglers (optional) Minimal diameter (in mm) of strangler figs,
+#'   default = 500.
+#'
+#' @return A formated data.table.
+#'
 #' @export
-
 format_interval <- function(df,flag_stranglers,dbh_stranglers,code.broken=NULL) {
 	YEAR <- unique(df$year)
 
@@ -398,18 +482,31 @@ format_interval <- function(df,flag_stranglers,dbh_stranglers,code.broken=NULL) 
 	return(DF2)
 }
 
-
-#' Flag major errors
-#' @description Identify trees with major errors in DBH measurments. A major error correspond to a relative individal productivity (or growth) is above a given percentage (set by 'maxrel') of the mean productivity computed at a site. Additionnaly, flagged trees that died at next census interval are also flagged. Option to see DBH measurement (=draw.graph) of flagged trees or print a csv (output_errors) are given.
-#' @param DF a data.table
-#' @param site provide the full name of your site (in lower case) i.e. 'barro colorado island'
-#' @param strangler TRUE or FALSE, if TRUE, strangler figs tree are flagged (upon a list to published soon)
-#' @param maxrel a numeric value setting the threshold over which relative productivity is assumed to be too high (usually set at 20 percents)
-#' @param output_errors TRUE or FALSE, output all records for trees with major errors in productivity to a csv file
-#' @param exclude_interval a vector (i.e. c(1,2)) indicating if a set of census intervals must be discarded from computation due for instance to a change in  protocol of measurment
-#' @return a data.table (data.frame) with all relevant variables.
-#' @export
+#' Flag major errors.
 #'
+#' Identify trees with major errors in DBH measurments. A major error correspond
+#' to a relative individal productivity (or growth) is above a given percentage
+#' (set by 'maxrel') of the mean productivity computed at a site. Additionnaly,
+#' flagged trees that died at next census interval are also flagged. Option to
+#' see DBH measurement (=draw.graph) of flagged trees or print a csv
+#' (output_errors) are given.
+#'
+#' @param DF A data.table.
+#' @param site Provide the full name of your site (in lower case) i.e. 'barro
+#'   colorado island'.
+#' @param strangler `TRUE` or `FALSE`, if `TRUE`  strangler figs tree are
+#'   flagged (upon a list to published soon).
+#' @param maxrel A numeric value setting the threshold over which relative
+#'   productivity is assumed to be too high (usually set at 20 percents).
+#' @param output_errors `TRUE` or `FALSE`, output all records for trees with
+#'   major errors in productivity to a csv file.
+#' @param exclude_interval A vector (i.e. c(1,2)) indicating if a set of census
+#'   intervals must be discarded from computation due for instance to a change
+#'   in  protocol of measurment.
+#'
+#' @return A data.table (data.frame) with all relevant variables.
+#'
+#' @export
 flag_errors <- function(DF,site,flag_stranglers,maxrel,graph_problem_trees,output_errors,exclude_interval) {
 	mean.prod <- determine_mean_prod(DF,site,flag_stranglers,exclude_interval)
 	DF[,prod.rel:=as.numeric(NA),]
@@ -478,15 +575,23 @@ flag_errors <- function(DF,site,flag_stranglers,maxrel,graph_problem_trees,outpu
 	return(DF)
 } # end of major.error
 
-#' Set mean productivity
-#' @description Set mean productivity (Mg/ha/yr) across all census intervals for a given site
-#' @param DF a data.table
-#' @param site provide the full name of your site (in lower case) i.e. 'barro colorado island'
-#' @param strangler TRUE or FALSE, if TRUE, strangler figs tree are flagged (upon a list to published soon)
-#' @param exclude_interval a vector (i.e. c(1,2)) indicating if a set of census intervals must be discarded from computation due for instance to a change in  protocol of measurment
-#' @return mean productivity in Mg/ha/yr.
+#' Set mean productivity.
+#'
+#' Set mean productivity (Mg/ha/yr) across all census intervals for a given
+#' site.
+#'
+#' @param DF A data.table.
+#' @param site Provide the full name of your site (in lower case) i.e. 'barro
+#'   colorado island'.
+#' @param strangler `TRUE` or `FALSE`, if `TRUE`  strangler figs tree are
+#'   flagged (upon a list to published soon).
+#' @param exclude_interval A vector (i.e. c(1,2)) indicating if a set of census
+#'   intervals must be discarded from computation due for instance to a change
+#'   in  protocol of measurment.
+#'
+#' @return Mean productivity in Mg/ha/yr.
+#'
 #' @export
-
 determine_mean_prod <- function(DF,site,flag_stranglers,exclude_interval) {
 	AREA <- site.info$size[match(site,site.info$site)]
 	if (missing(exclude_interval)){
@@ -502,12 +607,18 @@ determine_mean_prod <- function(DF,site,flag_stranglers,exclude_interval) {
 	return(mPROD)
 }
 
-#' Loess
-#' @description a wrapper to get smoothed predictions of AGB fluxes using a loess function (library 'locfit')
-#' @param x a data.table
-#' @param var the name of the variable to be smoothed again intial AGB
-#' @param range the range of initial AGB to be used for prediction (i.e. 5th and 95th percentiles of the whole distribution)
-#' @return a smoothed prediction of the variable of interest
+#' Loess.
+#'
+#' A wrapper to get smoothed predictions of AGB fluxes using a loess function
+#' (library 'locfit').
+#'
+#' @param x A data.table.
+#' @param var The name of the variable to be smoothed again intial AGB.
+#' @param range The range of initial AGB to be used for prediction (i.e. 5th and
+#'   95th percentiles of the whole distribution).
+#'
+#' @return A smoothed prediction of the variable of interest.
+#'
 #' @export
 loess.fun <- function(x,var,range,weights=NULL)  {
 	if (is.null(weights)) {
@@ -524,13 +635,17 @@ loess.fun <- function(x,var,range,weights=NULL)  {
 # 	return(data.frame(lAGB=Xrange,y=as.numeric(pred)))
 # }
 
-#' Normalized tree status
-#' @description Check the consistency of stem/tree status over time (i.e. a tree that is 'alive' at last census can not be 'dead' inbetween)
-#' @param x a data.table
-#' @return a data.table (data.frame) with a new colum "status1" where values can be "P"(prior),"A"(alive),"D"(dead) and "Dr"(dead replicated).
-#' @export
+#' Normalized tree status.
 #'
-
+#' Check the consistency of stem/tree status over time (i.e. a tree that is
+#' 'alive' at last census can not be 'dead' inbetween).
+#'
+#' @param x A data.table.
+#'
+#' @return A data.table (data.frame) with a new colum "status1" where values can
+#'   be "P"(prior),"A"(alive),"D"(dead) and "Dr"(dead replicated).
+#'
+#' @export
 check_status <-function(DT) {
 	if(!"status"%in%names(DT)) {
 		DT$status <- NA
@@ -554,14 +669,15 @@ check_status <-function(DT) {
 	return(STAT)
 }
 
-
-
-#' Load object
-#' @description a wrapper to softly load R objects in the Global environment
-#' @param saveFile the path to the object to be loaded
-#' @return import the object
+#' Load object.
+#'
+#' A wrapper to softly load R objects in the Global environment.
+#'
+#' @param saveFile The path to the object to be loaded.
+#'
+#' @return Import the object.
+#'
 #' @export
-
 LOAD <- function(saveFile) {
 	env <- new.env()
 	load(saveFile, envir=env)
@@ -570,12 +686,18 @@ LOAD <- function(saveFile) {
 	env[[loadedObjects]]
 }
 
-#' Assign status
-#' @description Assign status alive ("A"), alive with POM changed ("AC"), dead ("D"), recruited ("R") or resprout ("Rsp") to trees, and check for consistency over time (i.e. avoid resurrection)
-#' @param DF a data.table
-#' @return update the column 'status1' with consistent information.
+#' Assign status.
+#'
+#' Assign status alive ("A"), alive with POM changed ("AC"), dead ("D"),
+#' recruited ("R") or resprout ("Rsp") to trees, and check for consistency over
+#' time (i.e. avoid resurrection).
+#'
+#' @param DF A data.table.
+#'
+#' @return Update the column 'status1' with consistent information.
+#'
 #' @export
-
+# # FIXME: What is this?
 # # # Debug
 # DT <- DF2[treeID==391]
 # DT <- DF2[treeID== 230867 ][order(year)]
@@ -604,6 +726,7 @@ assign_status <- function(DT) {
 	return(list(agbl,code,dHOM))
 }
 
+# FIXME: What is this?
 # assign_status2 <- function(DT) {
 # 	code <- rep("A",nrow(DT))
 # 	code[DT$status1=="P"] <- "R"
@@ -622,16 +745,21 @@ assign_status <- function(DT) {
 # }
 
 
-#' Create quadrats
-#' @description Creat a grid where all trees are allocated to a given quadrat of size (= grid size).
-#' @param census a data.frame where trees have relative X-Y coordinates.
-#' @param grid_size the size of the grid (in meter)
-#' @param x the identifier of X coordinates (i.e. 'gx')
-#' @param y the identifier of Y coordinates (i.e. 'gy')
-#' @param make.squared does the coordinates needs to
-#' @return add three columns to the data.frame: quadrat's number, centroids X and Y.
+#' Create quadrats.
+#'
+#' Create a grid where all trees are allocated to a given quadrat of size (=
+#' grid size).
+#'
+#' @param census A data.frame where trees have relative X-Y coordinates.
+#' @param grid_size The size of the grid (in meter).
+#' @param x The identifier of X coordinates (i.e. 'gx').
+#' @param y The identifier of Y coordinates (i.e. 'gy').
+#' @param make.squared Does the coordinates needs to.
+#'
+#' @return Add three columns to the data.frame: quadrat's number, centroids X
+#'   and Y.
+#'
 #' @export
-
 create_quad=function(census,grid_size,x="gx",y="gy",fit.in.plot) {
 	X <- census[,grep(x,names(census)),with=F][[1]]
 	Y <- census[,grep(y,names(census)),with=F][[1]]
@@ -684,37 +812,32 @@ create_quad=function(census,grid_size,x="gx",y="gy",fit.in.plot) {
 	return(census)
 }
 
-#' Unbiased recruitment flux
-#' @description Compute unbiased recruitment rate (i.e. account for unmeasured recruitment)
-#' @param A0 biomass at initial census.
-#' @param A1 biomass of alive trees at final census.
-#' @param S1 initial biomass of individuals that survived to time t
-#' @param time cenusus interval in year
-#' @return absolute recruitment flux in % per year
+#' Compute unbiased recruitment flux and loss flux.
+#'
+#' `rec_flux()` and `loss_flux()` compute unbiased recruitment flux and loss
+#' flux, respectively.
+#'
+#' @param A0 Biomass at initial census.
+#' @param A1 Biomass of alive trees at final census.
+#' @param S1 Initial biomass of individuals that survived to time t.
+#' @param time Cenusus interval in year.
+#'
+#' @return Absolute recruitment flux in % per year.
+#'
 #' @export
-
 rec_flux <- function(A0,A1,S1,area,time) {
 	rec <- log(A1/S1)*(A1-A0)/(area*time*log(A1/A0))
 	ifelse(rec==Inf,0,rec)
 	return(rec)
 }
 
-#' Unbiased loss flux
-#' @description Compute unbiased recruitment rate (i.e. account for unmeasured recruitment)
-#' @param A0 biomass at initial census.
-#' @param A1 biomass of alive trees at final census.
-#' @param S1 initial biomass of individuals that survived to time t
-#' @param time cenusus interval in year
-#' @return absolute recruitment flux in % per year
+#' @rdname rec_flux
 #' @export
-
 loss_flux <- function(A0,A1,S1,area,time) {
 	LO <- (log(A0/S1)/log(A1/A0))*((A1-A0)/(area*time))
 	ifelse(LO==Inf,0,LO)
 	return(LO)
 }
-
-
 
 trim_growth=function(cens,slope=0.006214,intercept=.9036,err.limit=4,maxgrow=75,dbhunit='mm')
 {
