@@ -1,3 +1,4 @@
+^README\.Rmd$
 ^LICENSE\.md$
 ^inst/old_readme$
 ^.*\.Rproj$
