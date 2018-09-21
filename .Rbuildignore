@@ -1,2 +1,3 @@
+^inst/old_readme$
 ^.*\.Rproj$
 ^\.Rproj\.user$
