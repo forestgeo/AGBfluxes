@@ -6,13 +6,13 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Normalized tree status — check_status • AGBfluxes</title>
+<title>Normalized tree status. — check_status • AGBfluxes</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
 <!-- Bootstrap -->
+<link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/united/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 
-<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
 <!-- Font Awesome icons -->
@@ -30,9 +30,12 @@
 
 
 
-<meta property="og:title" content="Normalized tree status — check_status" />
+<meta property="og:title" content="Normalized tree status. — check_status" />
 
-<meta property="og:description" content="Check the consistency of stem/tree status over time (i.e. a tree that is 'alive' at last census can not be 'dead' inbetween)" />
+<meta property="og:description" content="Check the consistency of stem/tree status over time (i.e. a tree that is
+'alive' at last census can not be 'dead' inbetween)." />
+
+<meta property="og:image" content="https://forestgeo.github.io/AGBfluxes/logo.png" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -61,7 +64,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">AGBfluxes</a>
-        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">0.0.0.9000</span>
+        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">0.0.0.9001</span>
       </span>
     </div>
 
@@ -79,7 +82,21 @@
       </ul>
       
       <ul class="nav navbar-nav navbar-right">
-        
+        <li>
+  <a href="https://github.com/ervanstri">
+    <span class="fa fa-gavel"></span>
+     
+  </a>
+</li>
+<li>
+  <a href="https://github.com/forestgeo/AGBfluxes">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+<li>
+  <a href="https://forestgeo.github.io/fgeo/">fgeo</a>
+</li>
       </ul>
       
     </div><!--/.nav-collapse -->
@@ -92,14 +109,15 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Normalized tree status</h1>
-    
+    <h1>Normalized tree status.</h1>
+    <small class="dont-index">Source: <a href='https://github.com/forestgeo/AGBfluxes/blob/master/R/AGBfluxes_functions.R'><code>R/AGBfluxes_functions.R</code></a></small>
     <div class="hidden name"><code>check_status.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Check the consistency of stem/tree status over time (i.e. a tree that is 'alive' at last census can not be 'dead' inbetween)</p>
+    <p>Check the consistency of stem/tree status over time (i.e. a tree that is
+'alive' at last census can not be 'dead' inbetween).</p>
     
     </div>
 
@@ -110,13 +128,14 @@
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>x</th>
-      <td><p>a data.table</p></td>
+      <td><p>A data.table.</p></td>
     </tr>
     </table>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>a data.table (data.frame) with a new colum "status1" where values can be "P"(prior),"A"(alive),"D"(dead) and "Dr"(dead replicated).</p>
+    <p>A data.table (data.frame) with a new colum "status1" where values can
+be "P"(prior),"A"(alive),"D"(dead) and "Dr"(dead replicated).</p>
     
 
   </div>
@@ -128,16 +147,12 @@
       <li><a href="#value">Value</a></li>
           </ul>
 
-    <h2>Author</h2>
-    
-Ervan Rutishauser (er.rutishauser@gmail.com)
-
   </div>
 </div>
 
       <footer>
       <div class="copyright">
-  <p>Developed by Ervan Rutishauser, Mauro Lepore.</p>
+  <p>Developed by <a href='https://github.com/ervanstri'>Ervan Rutishauser</a>, <a href='https://github.com/maurolepore'>Mauro Lepore</a>.</p>
 </div>
 
 <div class="pkgdown">

@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Data correction. — correctDBH • AGBfluxes</title>
+<title>AGBfluxes: Compute Flux of Biomass at ForestGEO Sites — AGBfluxes-package • AGBfluxes</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -30,11 +30,10 @@
 
 
 
-<meta property="og:title" content="Data correction. — correctDBH" />
+<meta property="og:title" content="AGBfluxes: Compute Flux of Biomass at ForestGEO Sites — AGBfluxes-package" />
 
-<meta property="og:description" content="Perform two mains tasks: (a) apply a taper correction when POM is &amp;gt; 130 cm,
-and (b) linear interpolation values when missing DBHs. Interpolation of
-missing values is done by averaging surrounding available DBH values." />
+<meta property="og:description" content="
+Compute flux of biomass at ForestGEO sites." />
 
 <meta property="og:image" content="https://forestgeo.github.io/AGBfluxes/logo.png" />
 <meta name="twitter:card" content="summary" />
@@ -110,53 +109,49 @@ missing values is done by averaging surrounding available DBH values." />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Data correction.</h1>
-    <small class="dont-index">Source: <a href='https://github.com/forestgeo/AGBfluxes/blob/master/R/AGBfluxes_functions.R'><code>R/AGBfluxes_functions.R</code></a></small>
-    <div class="hidden name"><code>correctDBH.Rd</code></div>
+    <h1>AGBfluxes: Compute Flux of Biomass at ForestGEO Sites</h1>
+    <small class="dont-index">Source: <a href='https://github.com/forestgeo/AGBfluxes/blob/master/R/AGBfluxes-package.R'><code>R/AGBfluxes-package.R</code></a></small>
+    <div class="hidden name"><code>AGBfluxes-package.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Perform two mains tasks: (a) apply a taper correction when POM is &gt; 130 cm,
-and (b) linear interpolation values when missing DBHs. Interpolation of
-missing values is done by averaging surrounding available DBH values.</p>
+    <p><img src='figures/logo.png' align='right' /></p>
+<p>Compute flux of biomass at ForestGEO sites.</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>correctDBH</span>(<span class='no'>DT</span>, <span class='no'>taper_correction</span>, <span class='no'>fill_missing</span>)</pre>
-    
-    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
-    <table class="ref-arguments">
-    <colgroup><col class="name" /><col class="desc" /></colgroup>
-    <tr>
-      <th>taper_correction</th>
-      <td><p><code>TRUE</code> or <code>FALSE</code>, are you willing to apply Cushman
-et al (2014) taper correction?</p></td>
-    </tr>
-    <tr>
-      <th>fill_missing</th>
-      <td><p><code>TRUE</code> or <code>FALSE</code>, are you willing to extrapolate missing
-DBH from surrounding DBH?</p></td>
-    </tr>
-    <tr>
-      <th>DF</th>
-      <td><p>A data.table.</p></td>
-    </tr>
-    </table>
-    
-    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
+        
+    <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
-    <p>A data.table (data.frame) with all relevant variables.</p>
+    <div class='dont-index'><p>Useful links:</p><ul>
+<li><p><a href='https://github.com/forestgeo/AGBfluxes'>https://github.com/forestgeo/AGBfluxes</a></p></li>
+<li><p>Report bugs at <a href='https://github.com/forestgeo/AGBfluxes/issues'>https://github.com/forestgeo/AGBfluxes/issues</a></p></li>
+</ul></div>
     
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
-      <li><a href="#arguments">Arguments</a></li>
       
-      <li><a href="#value">Value</a></li>
+      <li><a href="#see-also">See also</a></li>
           </ul>
+
+    <h2>Author</h2>
+    
+<strong>Maintainer</strong>: Ervan Rutishauser <a href='mailto:er.rutishauser@gmail.com'>er.rutishauser@gmail.com</a> [contractor]
+
+Authors:
+<ul>
+<li><p>Mauro Lepore <a href='mailto:leporem@si.edu'>leporem@si.edu</a></p></li>
+</ul>
+
+Other contributors:
+<ul>
+<li><p>CTFS-ForestGEO <a href='mailto:ForestGEO@si.edu'>ForestGEO@si.edu</a> [copyright holder]</p></li>
+</ul>
+
 
   </div>
 </div>

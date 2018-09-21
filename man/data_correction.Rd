@@ -2,20 +2,23 @@
 % Please edit documentation in R/AGBfluxes_functions.R
 \name{data_correction}
 \alias{data_correction}
-\title{Trim and correct data}
+\title{Trim and correct data.}
 \usage{
 data_correction(df, taper_correction, fill_missing, stem)
 }
 \arguments{
-\item{taper_correction}{TRUE or FALSE, are you willing to apply Cushman et al (2014) taper correction?}
+\item{taper_correction}{\code{TRUE} or \code{FALSE}, are you willing to apply Cushman
+et al (2014) taper correction?}
 
-\item{fill_missing}{TRUE or FALSE, are you willing to extrapolate missing DBH from surrounding DBH?}
+\item{fill_missing}{\code{TRUE} or \code{FALSE}, are you willing to extrapolate missing
+DBH from surrounding DBH?}
 
-\item{stem}{is the function applied over stem (stem=TRUE) or tree (stem=FALSE) data?}
+\item{stem}{Is the function applied over stem (stem=TRUE) or tree
+(stem=FALSE) data?}
 }
 \value{
-a data.table (data.frame) with all relevant variables.
+A data.table (data.frame) with all relevant variables.
 }
 \description{
-Stack all censuses together and correct DBH, if required
+Stack all censuses together and correct DBH, if required.
 }

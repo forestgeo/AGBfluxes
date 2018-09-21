@@ -2,16 +2,16 @@
 % Please edit documentation in R/AGBfluxes_functions.R
 \name{LOAD}
 \alias{LOAD}
-\title{Load object}
+\title{Load object.}
 \usage{
 LOAD(saveFile)
 }
 \arguments{
-\item{saveFile}{the path to the object to be loaded}
+\item{saveFile}{The path to the object to be loaded.}
 }
 \value{
-import the object
+Import the object.
 }
 \description{
-a wrapper to softly load R objects in the Global environment
+A wrapper to softly load R objects in the Global environment.
 }

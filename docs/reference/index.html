@@ -11,8 +11,8 @@
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
 <!-- Bootstrap -->
+<link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/united/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 
-<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
 <!-- Font Awesome icons -->
@@ -31,6 +31,9 @@
 
 
 <meta property="og:title" content="Function reference" />
+
+<meta property="og:image" content="https://forestgeo.github.io/AGBfluxes/logo.png" />
+<meta name="twitter:card" content="summary" />
 
 
 
@@ -58,7 +61,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">AGBfluxes</a>
-        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">0.0.0.9000</span>
+        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">0.0.0.9001</span>
       </span>
     </div>
 
@@ -76,7 +79,21 @@
       </ul>
       
       <ul class="nav navbar-nav navbar-right">
-        
+        <li>
+  <a href="https://github.com/ervanstri">
+    <span class="fa fa-gavel"></span>
+     
+  </a>
+</li>
+<li>
+  <a href="https://github.com/forestgeo/AGBfluxes">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+<li>
+  <a href="https://forestgeo.github.io/fgeo/">fgeo</a>
+</li>
       </ul>
       
     </div><!--/.nav-collapse -->
@@ -103,7 +120,7 @@
     <tbody>
       <tr>
         <th colspan="2">
-          <h2 id="section-all-functions" class="hasAnchor"><a href="#section-all-functions" class="anchor"></a>All functions</h2>
+          <h2 id="section-functions" class="hasAnchor"><a href="#section-functions" class="anchor"></a>Functions</h2>
           <p class="section-desc"></p>
         </th>
       </tr>
@@ -112,19 +129,19 @@
         <td>
           <p><code><a href="assignAGB.html">assignAGB()</a></code> </p>
         </td>
-        <td><p>Assign AGB</p></td>
+        <td><p>Assign AGB.</p></td>
       </tr><tr>
         
         <td>
           <p><code><a href="assignWD.html">assignWD()</a></code> </p>
         </td>
-        <td><p>Assign wood density</p></td>
+        <td><p>Assign wood density.</p></td>
       </tr><tr>
         
         <td>
           <p><code><a href="assign_status.html">assign_status()</a></code> </p>
         </td>
-        <td><p>Assign status</p></td>
+        <td><p>Assign status.</p></td>
       </tr><tr>
         
         <td>
@@ -134,69 +151,57 @@
       </tr><tr>
         
         <td>
-          <p><code><a href="bci_stem_year.html">bci_stem_1995</a></code> <code><a href="bci_stem_year.html">bci_stem_2000</a></code> <code><a href="bci_stem_year.html">bci_stem_2005</a></code> </p>
-        </td>
-        <td><p>Example stem-tables from Barro Colorado Island (BCI).</p></td>
-      </tr><tr>
-        
-        <td>
           <p><code><a href="check_status.html">check_status()</a></code> </p>
         </td>
-        <td><p>Normalized tree status</p></td>
+        <td><p>Normalized tree status.</p></td>
       </tr><tr>
         
         <td>
           <p><code><a href="computeAGB.html">computeAGB()</a></code> </p>
         </td>
-        <td><p>Biomass computation</p></td>
+        <td><p>Biomass computation.</p></td>
       </tr><tr>
         
         <td>
           <p><code><a href="correctDBH.html">correctDBH()</a></code> </p>
         </td>
-        <td><p>Data correction</p></td>
+        <td><p>Data correction.</p></td>
       </tr><tr>
         
         <td>
           <p><code><a href="create_quad.html">create_quad()</a></code> </p>
         </td>
-        <td><p>Create quadrats</p></td>
+        <td><p>Create quadrats.</p></td>
       </tr><tr>
         
         <td>
           <p><code><a href="data_correction.html">data_correction()</a></code> </p>
         </td>
-        <td><p>Trim and correct data</p></td>
+        <td><p>Trim and correct data.</p></td>
       </tr><tr>
         
         <td>
           <p><code><a href="data_preparation.html">data_preparation()</a></code> </p>
         </td>
-        <td><p>CTFS-formated data preparation</p></td>
+        <td><p>CTFS-formated data preparation.</p></td>
       </tr><tr>
         
         <td>
           <p><code><a href="determine_mean_prod.html">determine_mean_prod()</a></code> </p>
         </td>
-        <td><p>Set mean productivity</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="ficus.html">ficus</a></code> </p>
-        </td>
-        <td><p>Taxonomy for the genus ficus.</p></td>
+        <td><p>Set mean productivity.</p></td>
       </tr><tr>
         
         <td>
           <p><code><a href="flag_errors.html">flag_errors()</a></code> </p>
         </td>
-        <td><p>Flag major errors</p></td>
+        <td><p>Flag major errors.</p></td>
       </tr><tr>
         
         <td>
           <p><code><a href="format_interval.html">format_interval()</a></code> </p>
         </td>
-        <td><p>Format census intervals</p></td>
+        <td><p>Format census intervals.</p></td>
       </tr><tr>
         
         <td>
@@ -208,25 +213,39 @@
         <td>
           <p><code><a href="LOAD.html">LOAD()</a></code> </p>
         </td>
-        <td><p>Load object</p></td>
+        <td><p>Load object.</p></td>
       </tr><tr>
         
         <td>
           <p><code><a href="loess.fun.html">loess.fun()</a></code> </p>
         </td>
-        <td><p>Loess</p></td>
+        <td><p>Loess.</p></td>
       </tr><tr>
         
         <td>
-          <p><code><a href="loss_flux.html">loss_flux()</a></code> </p>
+          <p><code><a href="rec_flux.html">rec_flux()</a></code> <code><a href="rec_flux.html">loss_flux()</a></code> </p>
         </td>
-        <td><p>Unbiased loss flux</p></td>
+        <td><p>Compute unbiased recruitment flux and loss flux.</p></td>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-datasets" class="hasAnchor"><a href="#section-datasets" class="anchor"></a>Datasets</h2>
+          <p class="section-desc"></p>
+        </th>
+      </tr>
+      <tr>
+        
+        <td>
+          <p><code><a href="bci_stem_year.html">bci_stem_1995</a></code> <code><a href="bci_stem_year.html">bci_stem_2000</a></code> <code><a href="bci_stem_year.html">bci_stem_2005</a></code> </p>
+        </td>
+        <td><p>Example stem-tables from Barro Colorado Island (BCI).</p></td>
       </tr><tr>
         
         <td>
-          <p><code><a href="rec_flux.html">rec_flux()</a></code> </p>
+          <p><code><a href="ficus.html">ficus</a></code> </p>
         </td>
-        <td><p>Unbiased recruitment flux</p></td>
+        <td><p>Taxonomy for the genus ficus.</p></td>
       </tr><tr>
         
         <td>
@@ -247,14 +266,15 @@
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
-      <li><a href="#section-all-functions">All functions</a></li>
+      <li><a href="#section-functions">Functions</a></li>
+      <li><a href="#section-datasets">Datasets</a></li>
     </ul>
   </div>
 </div>
 
       <footer>
       <div class="copyright">
-  <p>Developed by Ervan Rutishauser, Mauro Lepore.</p>
+  <p>Developed by <a href='https://github.com/ervanstri'>Ervan Rutishauser</a>, <a href='https://github.com/maurolepore'>Mauro Lepore</a>.</p>
 </div>
 
 <div class="pkgdown">

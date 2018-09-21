@@ -2,20 +2,24 @@
 % Please edit documentation in R/AGBfluxes_functions.R
 \name{correctDBH}
 \alias{correctDBH}
-\title{Data correction}
+\title{Data correction.}
 \usage{
 correctDBH(DT, taper_correction, fill_missing)
 }
 \arguments{
-\item{taper_correction}{TRUE or FALSE, are you willing to apply Cushman et al (2014) taper correction?}
+\item{taper_correction}{\code{TRUE} or \code{FALSE}, are you willing to apply Cushman
+et al (2014) taper correction?}
 
-\item{fill_missing}{TRUE or FALSE, are you willing to extrapolate missing DBH from surrounding DBH?}
+\item{fill_missing}{\code{TRUE} or \code{FALSE}, are you willing to extrapolate missing
+DBH from surrounding DBH?}
 
-\item{DF}{a data.table}
+\item{DF}{A data.table.}
 }
 \value{
-a data.table (data.frame) with all relevant variables.
+A data.table (data.frame) with all relevant variables.
 }
 \description{
-Perform two mains tasks: (a) apply a taper correction when POM is > 130 cm, and (b) linear interpolation values when missing DBHs. Interpolation of missing values is done by averaging surrounding available DBH values.
+Perform two mains tasks: (a) apply a taper correction when POM is > 130 cm,
+and (b) linear interpolation values when missing DBHs. Interpolation of
+missing values is done by averaging surrounding available DBH values.
 }
