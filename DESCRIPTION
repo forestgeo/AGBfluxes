@@ -6,14 +6,19 @@ Authors@R:
              family = "Rutishauser",
              role = c("aut", "ctr", "cre"),
              email = "er.rutishauser@gmail.com"),
-    person(given = "Mauro",
+      person(given = "Mauro",
              family = "Lepore",
-             role = c("aut"),
+             role = "aut",
              email = "leporem@si.edu"),
       person(given = "CTFS-ForestGEO",
              role = "cph",
              email = "ForestGEO@si.edu"))
 Description: Compute flux of biomass at ForestGEO sites.
 License: GPL-3
+Imports: 
+    BIOMASS,
+    data.table
 Encoding: UTF-8
 LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 6.1.0

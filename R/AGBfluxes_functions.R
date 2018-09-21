@@ -12,7 +12,6 @@
 #' @param DATA_path the pathname where the data are located
 #' @param exclude_interval NULL by default. If needed a vector (e.g. c(1,2)) indicating which census interval(s) must be discarded from computation due, for instance, to a change in measurement protocol
 #' @return a data.table (data.frame) with all relevant variables.
-#' @import data.table, BIOMASS
 #' @export
 #' @examples
 #' # Not run

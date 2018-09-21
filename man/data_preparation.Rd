@@ -39,7 +39,7 @@ a data.table (data.frame) with all relevant variables.
 Main routine to format, detect major obvious errors, and gap-fill those errors in CTFS-formated data
 }
 \examples{
- 
+# Not run
 data_preparation(site="barro colorado island",stem=T,taper_correction=T,fill_missing=T,use_palm_allometry=T,flag_strangler=T,dbh_stranglers=500,maxrel=0.2,graph_problem_trees=T,output_errors=T,DATA_path=NULL,exclude_interval=NULL)
 
 }
