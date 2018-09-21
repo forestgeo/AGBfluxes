@@ -75,55 +75,147 @@ data_preparation <- function(site,
                              output_errors,
                              DATA_path = NULL,
                              exclude_interval = NULL) {
+  # TODO: Rename data_preparation() to prepare_data()
+
   site <- tolower(site)
+  # TODO: DRY tolower(site)
   INDEX <- match(tolower(site), site.info$site)
+  # TODO: Add this and many more checks in a new check_data_preparation()
+  # TODO: Shorten message: Invalid `site`. See valid sites in `site.info`.
   if (is.na(INDEX)) {
     stop("Site name should be one of the following: \n", paste(levels(factor(site.info$site)), collapse = " - "))
   }
-
+  # TODO: Remove this if (): Make `DATA_path` the first argument with no default
   if (is.null(DATA_path)) {
     path_folder <- getwd()
+    # TODO: Is the double assignment intentional? (i.e`<<-` instead of `<-`)
     DATA_path <<- paste0(path_folder, "/data/")
   }
-
+  # TODO: Replace `DATA_path` by `.data`: A list of datasets.
+  # TODO: Write a helper that creates the list of datasets given a path.
   files <- list.files(DATA_path)
-  ifelse(stem, files <- files[grep("stem", files)], files <- files [grep("full", files)])
-  ifelse(!dir.exists(file.path(paste0(path_folder, "/output"))), dir.create(file.path(paste0(path_folder, "/output"))), FALSE)
 
+  # TODO: Relying on string matching might be dangerous.
+  ifelse(
+    stem,
+    files <- files[grep("stem", files)],
+    files <- files [grep("full", files)]
+  )
 
+  # TODO: Why not output a list of objects instead of files in a directory?
+  ifelse(
+    # FIXME: path_folder is undefined if user provide DATA_path, so this fails.
+    #   Define `path_folder` here again, or add argument `output_path`?
+    !dir.exists(file.path(paste0(path_folder, "/output"))),
+    dir.create(file.path(paste0(path_folder, "/output"))),
+    FALSE
+  )
+
+  # TODO: NA is of type logical. No need of NA_character, NA_integer, NA_real?
+  # TODO: Maybe hide these boilerplate by writting create_receiving_df()
   # Create the receiving data.frame
-  df <- data.frame("treeID" = NA, "stemID" = NA, "tag" = NA, "StemTag" = NA, "sp" = NA, "quadrat" = NA, "gx" = NA, "gy" = NA, "dbh" = NA, "hom" = NA, "ExactDate" = NA, "DFstatus" = NA, "codes" = NA, "date" = NA, "status" = NA, "CensusID" = NA, "year" = NA)
+  df <- data.frame(
+      "treeID" = NA,
+      "stemID" = NA,
+      "tag" = NA,
+      "StemTag" = NA,
+      "sp" = NA,
+      "quadrat" = NA,
+      "gx" = NA,
+      "gy" = NA,
+      "dbh" = NA,
+      "hom" = NA,
+      "ExactDate" = NA,
+      "DFstatus" = NA,
+      "codes" = NA,
+      "date" = NA,
+      "status" = NA,
+      "CensusID" = NA,
+      "year" = NA
+    )
 
+  # TODO: Is this code mainly finding the mean date from each census?
+  #   If so, you may create `mean_date()` and `lapply()` it to each list-item.
+  #   And do it in a helper hide unimportant details.
+  # TODO: see seq_along()
   for (i in 1:length(files)) {
+    # TODO: Again, this could be avoided if the censues come in a `.data` list
     temp <- setDT(LOAD(paste(DATA_path, files[i], sep = "/")))
     temp$CensusID <- i
+
+    # TODO: Too-long line. Need a meaningfully-named intermediary variable?
     temp[, year := round(mean(as.numeric(format(as.Date(date, origin = "1960-1-1"), "%Y")), na.rm = T))]
+
+    # TODO: Clarify this condition: Store it in a variable with meaninful name
+    # TODO: match() is oftern harder to read than %in% (see ?match())
     if (any(is.na(match(names(df), names(temp))))) {
       ID <- which(is.na(match(names(df), names(temp))))
-      stop(paste0("The data must have a column named ", names(df)[ID], collapse = " - "))
+      stop(
+        # TODO: glue::glue() and friends help write more readable error messages
+        paste0(
+          "The data must have a column named ", names(df)[ID], collapse = " - "
+        )
+      )
     }
+
+    # TODO: match() is oftern harder to read than %in% (see ?match())
     temp <- temp[, match(names(df), names(temp)), with = FALSE]
     df <- rbind(df, temp)
   }
+
+  # TODO: No need to use `rm()` inside function.
   rm(temp)
+  # TODO: Comment why the first row is useless. It's now obvious.
   df <- df[-1, ]
 
+  # TODO: Rename to correct_data()?
+  #   But what does it mean to correct data? What columns of df are affected?
   df <- data_correction(df, taper_correction, fill_missing, stem)
+  # TODO: Replace print() buy message().
+  # TODO: Move this message inside data_correction?
   print("Step 1: data correction done.")
 
+  # TODO: Reorder to match formals:
+  #   df, use_palm_allometry, DBH = NULL, WD = NULL, H = NULL
+  # FIXME: This fails
   df <- computeAGB(df, WD = WD, H = NULL, use_palm_allometry)
+
+  # TODO: Replace print() buy message()
   print("Step 2: AGB calculation done.")
 
+  # TODO: Not using `code.broken`, Is this intentional?
   DF <- format_interval(df, flag_stranglers, dbh_stranglers)
+  # TODO: Replace print() buy message()
   print("Step 3: data formating done.")
 
-  DF <- flag_errors(DF, site, flag_stranglers = flag_stranglers, maxrel = maxrel, graph_problem_trees = graph_problem_trees, output_errors = output_errors, exclude_interval = exclude_interval)
+  # TODO: If you use all arguments **in order** you can skip all from `=` sign
+  #   e.g. Instead of: `fun(arg11 = arg1, arg2, arg2)`, use: `fun(arg1, arg2)`
+  DF <- flag_errors(
+    DF,
+    site,
+    flag_stranglers = flag_stranglers,
+    maxrel = maxrel,
+    graph_problem_trees = graph_problem_trees,
+    output_errors = output_errors,
+    exclude_interval = exclude_interval
+  )
+  # TODO: Replace print() buy message()
   print("Step 4: errors flagged. Saving corrected data into 'data' folder.")
 
+  # TODO: Again, Why not output an object rather than write files?
   save(DF, file = paste0(path_folder, "/data/", site, "_formated_data.Rdata"))
+  # TODO: No need to rm() objects because they dissapear on exit
   rm(list = setdiff(ls(), c("DF", "path_folder", "SITE", lsf.str())))
+  # TODO: No need to use return. Simply end with DF.
+  #  The modern convension is to reserve return() only for returning early
   return(DF)
 }
+
+
+
+
+
+# TODO: Review from here onwards
 
 #' Trim and correct data.
 #'
