@@ -176,37 +176,36 @@ species greater than 'dbh_stranglers' are flagged</p></td>
     
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"># NOT RUN {
-data_preparation(
-  site = "barro colorado island",
-  stem = TURE,
-  taper_correction = TURE,
-  fill_missing = TURE,
-  use_palm_allometry = TURE,
-  flag_strangler = TURE,
-  dbh_stranglers = 500,
-  maxrel = 0.2,
-  graph_problem_trees = TURE,
-  output_errors = TURE,
-  DATA_path = NULL,
-  exclude_interval = NULL
+    <pre class="examples"><span class='co'># NOT RUN {</span>
+<span class='fu'>data_preparation</span>(
+  <span class='kw'>site</span> <span class='kw'>=</span> <span class='st'>"barro colorado island"</span>,
+  <span class='kw'>stem</span> <span class='kw'>=</span> <span class='no'>TURE</span>,
+  <span class='kw'>taper_correction</span> <span class='kw'>=</span> <span class='no'>TURE</span>,
+  <span class='kw'>fill_missing</span> <span class='kw'>=</span> <span class='no'>TURE</span>,
+  <span class='kw'>use_palm_allometry</span> <span class='kw'>=</span> <span class='no'>TURE</span>,
+  <span class='kw'>flag_strangler</span> <span class='kw'>=</span> <span class='no'>TURE</span>,
+  <span class='kw'>dbh_stranglers</span> <span class='kw'>=</span> <span class='fl'>500</span>,
+  <span class='kw'>maxrel</span> <span class='kw'>=</span> <span class='fl'>0.2</span>,
+  <span class='kw'>graph_problem_trees</span> <span class='kw'>=</span> <span class='no'>TURE</span>,
+  <span class='kw'>output_errors</span> <span class='kw'>=</span> <span class='no'>TURE</span>,
+  <span class='kw'>DATA_path</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>exclude_interval</span> <span class='kw'>=</span> <span class='kw'>NULL</span>
 )
 
-FIXME: What is this? These variable are defined but not used.
-site = "barro colorado island"
-stem = TURE
-taper_correction = TURE
-fill_missing = TURE
-use_palm_allometry = TURE
-flag_strangler = TURE
-dbh_stranglers = 500
-maxrel = 0.2
-graph_problem_trees = TURE
-output_errors = TURE
-DATA_path = NULL
-exclude_interval = NULL
-# }
-</pre>
+<span class='co'># FIXME: These variable are defined but not used.</span>
+<span class='no'>site</span> <span class='kw'>&lt;-</span> <span class='st'>"barro colorado island"</span>
+<span class='no'>stem</span> <span class='kw'>&lt;-</span> <span class='no'>TURE</span>
+<span class='no'>taper_correction</span> <span class='kw'>&lt;-</span> <span class='no'>TURE</span>
+<span class='no'>fill_missing</span> <span class='kw'>&lt;-</span> <span class='no'>TURE</span>
+<span class='no'>use_palm_allometry</span> <span class='kw'>&lt;-</span> <span class='no'>TURE</span>
+<span class='no'>flag_strangler</span> <span class='kw'>&lt;-</span> <span class='no'>TURE</span>
+<span class='no'>dbh_stranglers</span> <span class='kw'>&lt;-</span> <span class='fl'>500</span>
+<span class='no'>maxrel</span> <span class='kw'>&lt;-</span> <span class='fl'>0.2</span>
+<span class='no'>graph_problem_trees</span> <span class='kw'>&lt;-</span> <span class='no'>TURE</span>
+<span class='no'>output_errors</span> <span class='kw'>&lt;-</span> <span class='no'>TURE</span>
+<span class='no'>DATA_path</span> <span class='kw'>&lt;-</span> <span class='kw'>NULL</span>
+<span class='no'>exclude_interval</span> <span class='kw'>&lt;-</span> <span class='kw'>NULL</span>
+<span class='co'># }</span></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
