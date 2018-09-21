@@ -1,6 +1,6 @@
 Package: AGBfluxes
 Title: Compute Flux of Biomass at ForestGEO Sites
-Version: 0.0.0.9000
+Version: 0.0.0.9001
 Authors@R: 
     c(person(given = "Ervan",
              family = "Rutishauser",
