@@ -18,10 +18,12 @@ License: GPL-3
 Imports: 
     BIOMASS,
     data.table
+Suggests: 
+    covr,
+    testthat
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.1.0
-Suggests: 
-    covr,
-    testthat
+URL: https://github.com/forestgeo/AGBfluxes
+BugReports: https://github.com/forestgeo/AGBfluxes/issues

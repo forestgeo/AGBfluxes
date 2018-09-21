@@ -1,8 +1,9 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# AGBfluxes
+# <img src="https://i.imgur.com/vTLlhbp.png" align="right" height=88 /> Compute flux of biomass at ForestGEO sites
 
+[![lifecycle](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
 [![Travis build
 status](https://travis-ci.org/forestgeo/AGBfluxes.svg?branch=master)](https://travis-ci.org/forestgeo/AGBfluxes)
 [![CRAN
@@ -10,18 +11,19 @@ status](https://www.r-pkg.org/badges/version/AGBfluxes)](https://cran.r-project.
 [![Coverage
 status](https://coveralls.io/repos/github/forestgeo/AGBfluxes/badge.svg)](https://coveralls.io/r/forestgeo/AGBfluxes?branch=master)
 
-The goal of AGBfluxes is to …
-
 ## Installation
 
 You can install the released version of AGBfluxes from
 [CRAN](https://CRAN.R-project.org) with:
 
 ``` r
-install.packages("AGBfluxes")
+# install.packages("devtools")
+devtools::install_github("AGBfluxes")
 ```
 
 ## Example
+
+TODO: Read and edit everything below.
 
 This is a basic example which shows you how to solve a common problem:
 
