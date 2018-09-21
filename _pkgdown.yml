@@ -1,21 +1,61 @@
+url: https://forestgeo.github.io/AGBfluxes/
+
+authors:
+  Ervan Rutishauser:
+    href: https://github.com/ervanstri
+  Mauro Lepore:
+    href: https://github.com/maurolepore
+  CTFS-ForestGEO:
+    href: http://www.forestgeo.si.edu/
+
+template:
+  params:
+    bootswatch: united
+
+home:
+  links:
+    - text: Learn more about ForestGEO
+      href: http://www.forestgeo.si.edu/
+
+
+
+navbar:
+
+  type: default
+
+  right:
+
+    - icon: fa-gavel
+      href: https://github.com/ervanstri
+
+    - icon: fa-github
+      href: https://github.com/forestgeo/AGBfluxes
+
+    - text: fgeo
+      href: https://forestgeo.github.io/fgeo/
+
+
+
+
+
+
+
 reference:
 
-- title: Functions
-  desc: ~
-  contents:
-  - -matches('bci_stem_1995')
-  - -matches('bci_stem_2000')
-  - -matches('bci_stem_2000')
-  - -matches('ficus')
-  - -matches('site.info')
-  - -matches('WSG')
+  - title: Functions
+    contents:
+      - -matches('bci_stem_1995')
+      - -matches('bci_stem_2000')
+      - -matches('bci_stem_2000')
+      - -matches('ficus')
+      - -matches('site.info')
+      - -matches('WSG')
 
-- title: Datasets
-  desc: ~
-  contents:
-  - 'bci_stem_1995'
-  - 'bci_stem_2000'
-  - 'bci_stem_2000'
-  - 'ficus'
-  - 'site.info'
-  - 'WSG'
+  - title: Datasets
+    contents:
+      - 'bci_stem_1995'
+      - 'bci_stem_2000'
+      - 'bci_stem_2000'
+      - 'ficus'
+      - 'site.info'
+      - 'WSG'
