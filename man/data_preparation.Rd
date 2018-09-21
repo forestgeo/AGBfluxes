@@ -67,18 +67,18 @@ data_preparation(
   exclude_interval = NULL
 )
 
-FIXME: What is this? These variable are defined but not used.
-site = "barro colorado island"
-stem = TURE
-taper_correction = TURE
-fill_missing = TURE
-use_palm_allometry = TURE
-flag_strangler = TURE
-dbh_stranglers = 500
-maxrel = 0.2
-graph_problem_trees = TURE
-output_errors = TURE
-DATA_path = NULL
-exclude_interval = NULL
+# FIXME: These variable are defined but not used.
+site <- "barro colorado island"
+stem <- TURE
+taper_correction <- TURE
+fill_missing <- TURE
+use_palm_allometry <- TURE
+flag_strangler <- TURE
+dbh_stranglers <- 500
+maxrel <- 0.2
+graph_problem_trees <- TURE
+output_errors <- TURE
+DATA_path <- NULL
+exclude_interval <- NULL
 }
 }
