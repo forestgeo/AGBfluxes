@@ -3,6 +3,13 @@
 
 # AGBfluxes
 
+[![Travis build
+status](https://travis-ci.org/forestgeo/AGBfluxes.svg?branch=master)](https://travis-ci.org/forestgeo/AGBfluxes)
+[![CRAN
+status](https://www.r-pkg.org/badges/version/AGBfluxes)](https://cran.r-project.org/package=AGBfluxes)
+[![Coverage
+status](https://coveralls.io/repos/github/forestgeo/AGBfluxes/badge.svg)](https://coveralls.io/r/forestgeo/AGBfluxes?branch=master)
+
 The goal of AGBfluxes is to …
 
 ## Installation
