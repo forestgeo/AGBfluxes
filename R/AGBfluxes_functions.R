@@ -47,7 +47,7 @@
 #'   DATA_path = NULL,
 #'   exclude_interval = NULL
 #' )
-#' 
+#'
 #' # FIXME: These variable are defined but not used.
 #' site <- "barro colorado island"
 #' stem <- TURE
@@ -62,7 +62,19 @@
 #' DATA_path <- NULL
 #' exclude_interval <- NULL
 #' }
-data_preparation <- function(site, stem, WD = NULL, taper_correction, fill_missing, use_palm_allometry, flag_strangler, dbh_stranglers, maxrel, graph_problem_trees, output_errors, DATA_path = NULL, exclude_interval = NULL) {
+data_preparation <- function(site,
+                             stem,
+                             WD = NULL,
+                             taper_correction,
+                             fill_missing,
+                             use_palm_allometry,
+                             flag_strangler,
+                             dbh_stranglers,
+                             maxrel,
+                             graph_problem_trees,
+                             output_errors,
+                             DATA_path = NULL,
+                             exclude_interval = NULL) {
   site <- tolower(site)
   INDEX <- match(tolower(site), site.info$site)
   if (is.na(INDEX)) {
@@ -257,7 +269,11 @@ correctDBH <- function(DT, taper_correction, fill_missing) {
 #' @return A data.table (data.frame) with all relevant variables.
 #'
 #' @export
-computeAGB <- function(df, use_palm_allometry, DBH = NULL, WD = NULL, H = NULL) {
+computeAGB <- function(df,
+                       use_palm_allometry,
+                       DBH = NULL,
+                       WD = NULL,
+                       H = NULL) {
   if (!exists("DATA_path")) {
     DATA_path <<- paste0(path_folder, "/data/")
   }
@@ -406,7 +422,10 @@ assignAGB <- function(DAT, DBH = NULL, H = NULL) {
 #' @return A formated data.table.
 #'
 #' @export
-format_interval <- function(df, flag_stranglers, dbh_stranglers, code.broken = NULL) {
+format_interval <- function(df,
+                            flag_stranglers,
+                            dbh_stranglers,
+                            code.broken = NULL) {
   YEAR <- unique(df$year)
 
   # Receiveing data set
@@ -525,7 +544,13 @@ format_interval <- function(df, flag_stranglers, dbh_stranglers, code.broken = N
 #' @return A data.table (data.frame) with all relevant variables.
 #'
 #' @export
-flag_errors <- function(DF, site, flag_stranglers, maxrel, graph_problem_trees, output_errors, exclude_interval) {
+flag_errors <- function(DF,
+                        site,
+                        flag_stranglers,
+                        maxrel,
+                        graph_problem_trees,
+                        output_errors,
+                        exclude_interval) {
   mean.prod <- determine_mean_prod(DF, site, flag_stranglers, exclude_interval)
   DF[, prod.rel := as.numeric(NA), ]
   DF[, prod.rel := prod.g / mean.prod] # relative contribution to average total productivity
@@ -868,7 +893,12 @@ loss_flux <- function(A0, A1, S1, area, time) {
   return(LO)
 }
 
-trim_growth <- function(cens, slope = 0.006214, intercept = .9036, err.limit = 4, maxgrow = 75, dbhunit = "mm") {
+trim_growth <- function(cens,
+                        slope = 0.006214,
+                        intercept = .9036,
+                        err.limit = 4,
+                        maxgrow = 75,
+                        dbhunit = "mm") {
   if (dbhunit == "cm") intercept <- intercept / 10
   stdev.dbh1 <- slope * cens$dbhc1 + intercept
 
