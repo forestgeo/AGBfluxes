@@ -2,19 +2,18 @@
 % Please edit documentation in R/AGBfluxes_functions.R
 \name{check_status}
 \alias{check_status}
-\title{Normalized tree status}
+\title{Normalized tree status.}
 \usage{
 check_status(DT)
 }
 \arguments{
-\item{x}{a data.table}
+\item{x}{A data.table.}
 }
 \value{
-a data.table (data.frame) with a new colum "status1" where values can be "P"(prior),"A"(alive),"D"(dead) and "Dr"(dead replicated).
+A data.table (data.frame) with a new colum "status1" where values can
+be "P"(prior),"A"(alive),"D"(dead) and "Dr"(dead replicated).
 }
 \description{
-Check the consistency of stem/tree status over time (i.e. a tree that is 'alive' at last census can not be 'dead' inbetween)
-}
-\author{
-Ervan Rutishauser (er.rutishauser@gmail.com)
+Check the consistency of stem/tree status over time (i.e. a tree that is
+'alive' at last census can not be 'dead' inbetween).
 }

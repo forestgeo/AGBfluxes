@@ -2,22 +2,26 @@
 % Please edit documentation in R/AGBfluxes_functions.R
 \name{rec_flux}
 \alias{rec_flux}
-\title{Unbiased recruitment flux}
+\alias{loss_flux}
+\title{Compute unbiased recruitment flux and loss flux.}
 \usage{
 rec_flux(A0, A1, S1, area, time)
+
+loss_flux(A0, A1, S1, area, time)
 }
 \arguments{
-\item{A0}{biomass at initial census.}
+\item{A0}{Biomass at initial census.}
 
-\item{A1}{biomass of alive trees at final census.}
+\item{A1}{Biomass of alive trees at final census.}
 
-\item{S1}{initial biomass of individuals that survived to time t}
+\item{S1}{Initial biomass of individuals that survived to time t.}
 
-\item{time}{cenusus interval in year}
+\item{time}{Cenusus interval in year.}
 }
 \value{
-absolute recruitment flux in % per year
+Absolute recruitment flux in % per year.
 }
 \description{
-Compute unbiased recruitment rate (i.e. account for unmeasured recruitment)
+\code{rec_flux()} and \code{loss_flux()} compute unbiased recruitment flux and loss
+flux, respectively.
 }

@@ -2,22 +2,25 @@
 % Please edit documentation in R/AGBfluxes_functions.R
 \name{assignWD}
 \alias{assignWD}
-\title{Assign wood density}
+\title{Assign wood density.}
 \usage{
 assignWD(DAT, WD = NULL)
 }
 \arguments{
-\item{df}{a data.table}
+\item{df}{A data.table.}
 
-\item{site}{provide the full name of your site (in lower case) i.e. 'barro colorado island'}
+\item{site}{Provide the full name of your site (in lower case) i.e. 'barro
+colorado island'.}
 
-\item{wsgdata}{a list of tree species (mnenomic) and corresponding wood density}
+\item{wsgdata}{A list of tree species (mnenomic) and corresponding wood
+density.}
 
-\item{denscol}{the variable to be return ("wsg" by default). No other option is implemented.}
+\item{denscol}{The variable to be return ("wsg" by default). No other option
+is implemented.}
 }
 \value{
-a data.table (data.frame) with all relevant variables.
+A data.table (data.frame) with all relevant variables.
 }
 \description{
-Assign wood density using CTFS wood density data base (WSG)
+Assign wood density using CTFS wood density data base (WSG).
 }

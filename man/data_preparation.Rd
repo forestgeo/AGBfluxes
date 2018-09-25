@@ -2,7 +2,7 @@
 % Please edit documentation in R/AGBfluxes_functions.R
 \name{data_preparation}
 \alias{data_preparation}
-\title{CTFS-formated data preparation}
+\title{CTFS-formated data preparation.}
 \usage{
 data_preparation(site, stem, WD = NULL, taper_correction, fill_missing,
   use_palm_allometry, flag_strangler, dbh_stranglers, maxrel,
@@ -10,36 +10,75 @@ data_preparation(site, stem, WD = NULL, taper_correction, fill_missing,
   exclude_interval = NULL)
 }
 \arguments{
-\item{site}{the full name of your site (in lower case); e.g., 'barro colorado island'}
+\item{site}{The full name of your site (in lower case); e.g., 'barro colorado
+island'.}
 
-\item{stem}{TRUE or FALSE, using the stem data (stem=TRUE) rather than the tree data (i.e. called 'full', stem=FALSE)}
+\item{stem}{\code{TRUE} or \code{FALSE}, using the stem data (\code{stem = TRUE}) rather
+than the tree data (i.e. called 'full', \code{stem = FALSE}).}
 
-\item{taper_correction}{TRUE or FALSE, apply Cushman et al (2014) taper correction}
+\item{taper_correction}{\code{TRUE} or \code{FALSE}, apply Cushman et al (2014) taper
+correction.}
 
-\item{fill_missing}{TRUE or FALSE, interpolate missing DBH values}
+\item{fill_missing}{\code{TRUE} or \code{FALSE}, interpolate missing DBH values.}
 
-\item{use_palm_allometry}{TRUE or FALSE, if TRUE, compute biomass of palm trees using a palm-specific allometric model from Goodman et al. (2013)}
+\item{use_palm_allometry}{\code{TRUE} or \code{FALSE}, if \code{TRUE}, compute biomass of
+palm trees using a palm-specific allometric model from Goodman et al.
+(2013).}
 
-\item{dbh_stranglers}{(optional) minimal diameter (in mm) of strangler figs, default = 500}
+\item{dbh_stranglers}{(optional) Minimal diameter (in mm) of strangler figs,
+default = 500.}
 
-\item{maxrel}{a numeric value: the threshold for flagging major errors in productivity, applied as absval(individual tree productivity)>maxrel*(average productivity per hectare)}
+\item{maxrel}{A numeric value: the threshold for flagging major errors in
+productivity, applied as \code{absval(individual-tree-productivity) > maxrel * (average-productivity-per-hectare)}.}
 
-\item{output_errors}{TRUE or FALSE, output all records for trees with major errors in productivity to a csv file}
+\item{output_errors}{\code{TRUE} or \code{FALSE}, output all records for trees with
+major errors in productivity to a csv file.}
 
-\item{DATA_path}{the pathname where the data are located}
+\item{DATA_path}{The pathname where the data are located.}
 
-\item{exclude_interval}{NULL by default. If needed a vector (e.g. c(1,2)) indicating which census interval(s) must be discarded from computation due, for instance, to a change in measurement protocol}
+\item{exclude_interval}{\code{NULL} by default. If needed a vector (e.g. c(1,2))
+indicating which census interval(s) must be discarded from computation due,
+for instance, to a change in measurement protocol.}
 
-\item{flag_stranglers}{TRUE or FALSE, individuals of known strangler fig species greater than 'dbh_stranglers' are flagged}
+\item{flag_stranglers}{\code{TRUE} or \code{FALSE}, individuals of known strangler fig
+species greater than 'dbh_stranglers' are flagged}
 }
 \value{
-a data.table (data.frame) with all relevant variables.
+A data.table (data.frame) with all relevant variables.
 }
 \description{
-Main routine to format, detect major obvious errors, and gap-fill those errors in CTFS-formated data
+Main routine to format, detect major obvious errors, and gap-fill those
+errors in CTFS-formated data.
 }
 \examples{
- 
-data_preparation(site="barro colorado island",stem=T,taper_correction=T,fill_missing=T,use_palm_allometry=T,flag_strangler=T,dbh_stranglers=500,maxrel=0.2,graph_problem_trees=T,output_errors=T,DATA_path=NULL,exclude_interval=NULL)
+\dontrun{
+data_preparation(
+  site = "barro colorado island",
+  stem = TURE,
+  taper_correction = TURE,
+  fill_missing = TURE,
+  use_palm_allometry = TURE,
+  flag_strangler = TURE,
+  dbh_stranglers = 500,
+  maxrel = 0.2,
+  graph_problem_trees = TURE,
+  output_errors = TURE,
+  DATA_path = NULL,
+  exclude_interval = NULL
+)
 
+# FIXME: These variable are defined but not used.
+site <- "barro colorado island"
+stem <- TURE
+taper_correction <- TURE
+fill_missing <- TURE
+use_palm_allometry <- TURE
+flag_strangler <- TURE
+dbh_stranglers <- 500
+maxrel <- 0.2
+graph_problem_trees <- TURE
+output_errors <- TURE
+DATA_path <- NULL
+exclude_interval <- NULL
+}
 }

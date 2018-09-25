@@ -1,12 +1,29 @@
 Package: AGBfluxes
-Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Title: Compute Flux of Biomass at ForestGEO Sites
+Version: 0.0.0.9001
+Authors@R: 
+    c(person(given = "Ervan",
+             family = "Rutishauser",
+             role = c("aut", "ctr", "cre"),
+             email = "er.rutishauser@gmail.com"),
+      person(given = "Mauro",
+             family = "Lepore",
+             role = "aut",
+             email = "leporem@si.edu"),
+      person(given = "CTFS-ForestGEO",
+             role = "cph",
+             email = "ForestGEO@si.edu"))
+Description: Compute flux of biomass at ForestGEO sites.
+License: GPL-3
+Imports: 
+    BIOMASS,
+    data.table
+Suggests: 
+    covr,
+    testthat
 Encoding: UTF-8
 LazyData: true
+Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.1.0
+URL: https://github.com/forestgeo/AGBfluxes
+BugReports: https://github.com/forestgeo/AGBfluxes/issues
