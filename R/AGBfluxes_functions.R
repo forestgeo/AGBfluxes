@@ -175,6 +175,10 @@ data_preparation <- function(site,
   # bci_stem_2000 <- temp
   # devtools::use_data(bci_stem_2000,overwrite = T)
 
+  # FIXME: You don't need utils::data(). These objects are exported (i.e. they
+  # live in data/), therefore you can refer to them direclty -- they are
+  # automatically loaded in the namespace of your package. I would refer to them
+  # as AGBflux::WSG, AGBflux::site.info, and AGBflux::ficus.
   # Load required data & information
   data(list=c("WSG","site.info","ficus"))
 
@@ -213,7 +217,7 @@ data_preparation <- function(site,
   # TODO: Again, Why not output an object rather than write files?
   save(DF, file = paste0(path_folder, "/data/", site, "_formated_data.Rdata"))
   # TODO: No need to rm() objects because they dissapear on exit
-  rm(list = setdiff(ls(), c("DF", "path_folder", "SITE", lsf.str())))
+  rm(list = setdiff(ls(), c("DF", "path_folder", "SITE", utils::lsf.str())))
   # TODO: No need to use return. Simply end with DF.
   #  The modern convension is to reserve return() only for returning early
 }
@@ -224,7 +228,31 @@ data_preparation <- function(site,
 
 # TODO: Review from here onwards
 
-#' This function checks for each stem that (i) its status (i.e. alive or dead) is consistent across all censuses (e.g. can't be dead and alive at next census), (ii) assign a mean census date (when missing) and (iii) interpolate DBHs when missing (fill_missing=T). Additionnaly, unecessary information (i.e. replication of dead trees/recruits) is discarded.
+# QUestion: do I need to declare and examplify all functions that are called
+# internally, such as correctDBH, Check_status, etc??
+# ANSWER: You don't need to give examples for internal funcitons. In fact, I
+# would avoid the `@examples` tag in internal funcitons. If you want to give
+# examples for internal use, you could simply use normal comments, not roxygen
+# comments, like this:
+# Examples:
+# data(df)
+# # Correct for change in POM and missing value
+# df <- consolidate_data(df, taper_correction=T, fill_missing=T, stem=T)
+# df[treeID==240] # show the result with missing value
+# # Correct for missing value only
+# df <- consolidate_data(df, taper_correction=F, fill_missing=T, stem=T)
+# df[treeID==240] # show the result with missing value
+# # No correction
+# df <- consolidate_data(df, taper_correction=F, fill_missing=F, stem=T)
+# df[treeID==240] # show the result with missing value
+
+#' Check for consistency across censuses.
+#'
+#' This function checks for each stem that (i) its status (i.e. alive or dead)
+#' is consistent across all censuses (e.g. can't be dead and alive at next
+#' census), (ii) assign a mean census date (when missing) and (iii) interpolate
+#' DBHs when missing (fill_missing=T). Additionnaly, unecessary information
+#' (i.e. replication of dead trees/recruits) is discarded.
 #'
 #' @param taper_correction `TRUE` or `FALSE`, are you willing to apply Cushman
 #'   et al (2014) taper correction?
@@ -233,22 +261,12 @@ data_preparation <- function(site,
 #' @param stem Is the function applied over stem (stem=TRUE) or tree
 #'   (stem=FALSE) data?
 #'
-#' @return A data.table (data.frame) with 3 new variables: status1 (corrected status),dbh2 (corrected dbh) and hom2 (corrected height of measure). A unique stem id ("id") is created if stem = T.
+#' @return A data.table (data.frame) with 3 new variables: status1 (corrected
+#'   status),dbh2 (corrected dbh) and hom2 (corrected height of measure). A
+#'   unique stem id ("id") is created if stem = T.
 #'
-#' @examples
-#' data(df)
-#' # Correct for change in POM and missing value
-#' df <- consolidate_data(df, taper_correction=T, fill_missing=T, stem=T)
-#' df[treeID==240] # show the result with missing value
-#' # Correct for missing value only
-#' df <- consolidate_data(df, taper_correction=F, fill_missing=T, stem=T)
-#' df[treeID==240] # show the result with missing value
-#' # No correction
-#' df <- consolidate_data(df, taper_correction=F, fill_missing=F, stem=T)
-#' df[treeID==240] # show the result with missing value
-
-
-# QUestion: do I need to declare and examplify all functions that are called internally, such as correctDBH, Check_status, etc??
+#' @keywords internal
+#' @noRd
 consolidate_data <- function(df, taper_correction, fill_missing, stem) {
   if (stem) {
     df[, "id" := paste(treeID, stemID, sep = "-")] # creat a unique tree-stem ID
@@ -285,6 +303,13 @@ consolidate_data <- function(df, taper_correction, fill_missing, stem) {
 }
 
 
+
+# Examples
+# data(df)
+# correctDBH(df[treeID==240]) # DOESN'T work. Need to pass 'check_status' first
+
+#' Taper correction and linear interpolaiton.
+#'
 #' Perform two mains tasks: (a) apply a taper correction when POM is > 130 cm,
 #' and (b) linear interpolation values when missing DBHs. Interpolation of
 #' missing values is done by averaging surrounding available DBH values.
@@ -297,10 +322,8 @@ consolidate_data <- function(df, taper_correction, fill_missing, stem) {
 #'
 #' @return A data.table (data.frame) with all relevant variables.
 #'
-#' @examples
-#' data(df)
-#' correctDBH(df[treeID==240]) # DOESN'T work. Need to pass 'check_status' first
-#'
+#' @keywords internal
+#' @noRd
 correctDBH <- function(DT, taper_correction, fill_missing) {
   dbh2 <- DT[status1 == "A", "dbh"][[1]]
   hom2 <- DT[status1 == "A", round(hom * 100) / 100] # round hom to be at 1.3 meter (avoiding odd rounding)
@@ -682,7 +705,7 @@ flag_errors <- function(DF,
   # ID <- DF[error!=0 & !code%in%c("D","R"),nrow(.SD)>=1,by=treeID]
   # ID <- ID[V1==T,treeID]
   ID <- unique(DF[error != 0, treeID])
-  A <- menu(c("Y", "N"), title = paste("There are",length(ID), "trees with errors. Do you want to print",round(length(ID)/15),"pages?"))
+  A <- utils::menu(c("Y", "N"), title = paste("There are",length(ID), "trees with errors. Do you want to print",round(length(ID)/15),"pages?"))
   ifelse(A == 1, graph_problem_trees <- T, graph_problem_trees <- F)
 
   if (graph_problem_trees) { # Plot trees with large major error
@@ -724,7 +747,7 @@ flag_errors <- function(DF,
     print(paste0("No tree productivity above", maxrel, "% or below", -maxrel, "% of mean productivity at your plot. You may eventually want to try a lower threshold."))
   }
   if (output_errors & length(ID) > 0) {
-    write.csv(DF[treeID %in% ID], file = paste0(path_folder, "/output/trees_with_major_errors.csv"))
+    utils::write.csv(DF[treeID %in% ID], file = paste0(path_folder, "/output/trees_with_major_errors.csv"))
   }
   return(DF)
 } # end of major.error
@@ -873,7 +896,7 @@ assign_status <- function(DT) {
   code[code == "A" & DT$code2 == "R"] <- "Rsp" #
   code[code == "A" & is.na(DT$status1) & !is.na(DT$status2)] <- "Rsp" # resprouted trees poses a problem only the first year, are alive/dead after
   code[code == "A" & grep("MAIN", DT$code1) & grep("SPROUT", DT$code2)] <- "Rsp" # resprouted trees poses a problem only the first year, are alive/dead after
-  if (tail(DT$status2, 1) == "D") {
+  if (utils::tail(DT$status2, 1) == "D") {
     code[length(code)] <- "D"
   }
   if (any(code == "A")) {
