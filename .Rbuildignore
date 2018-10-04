@@ -1,3 +1,5 @@
+^data-raw$
+^output$
 ^\.github$
 ^docs$
 ^_pkgdown\.yml$

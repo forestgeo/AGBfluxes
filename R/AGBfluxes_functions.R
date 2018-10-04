@@ -44,26 +44,7 @@
 #'   DATA_path = NULL,
 #'   exclude_interval = NULL
 #' )
-#'
-#' # FIXME: These variable are defined but not used.
-#' site <- "barro colorado island"
-#' stem <- TRUE
-#' taper_correction <- TRUE
-#' fill_missing <- TRUE
-#' use_palm_allometry <- TRUE
-#' flag_strangler <- TRUE
-#' dbh_stranglers <- 500
-#' maxrel <- 0.2
-#' graph_problem_trees <- TRUE
-#' output_errors <- TRUE
-#' DATA_path <- NULL
-#' exclude_interval <- NULL
 #' }
-#'
-#' #'   # Load required data & information
-#' pkgs <- c("BIOMASS","data.table","ggplot2","gridExtra")
-#' lapply(pkgs,function(x) devtools::use_package(x)) # not sure this is the proper way to install packages
-
 data_preparation <- function(site,
                              stem,
                              WD = NULL,
