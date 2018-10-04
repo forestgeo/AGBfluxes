@@ -6,8 +6,6 @@
 \alias{AGBfluxes-package}
 \title{AGBfluxes: Compute Flux of Biomass at ForestGEO Sites}
 \description{
-\if{html}{\figure{logo.png}{options: align='right'}}
-
 Compute flux of biomass at ForestGEO sites.
 }
 \seealso{

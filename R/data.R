@@ -1,3 +1,9 @@
+#' TODO: What is this dataset?
+#'
+#' @examples
+#' str(df)
+"df"
+
 #' Species table from from Barro Colorado Island (BCI).
 #'
 #' @examples

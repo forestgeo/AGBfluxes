@@ -16,3 +16,6 @@ use_data(
   WSG,
   overwrite = TRUE
 )
+
+# DF was in "barro colorado island_formated_data.Rdata" stored in data/.
+use_data(df, overwrite = TRUE)
