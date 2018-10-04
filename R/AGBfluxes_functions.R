@@ -35,33 +35,37 @@
 #' \dontrun{
 #' data_preparation(
 #'   site = "barro colorado island",
-#'   stem = TURE,
-#'   taper_correction = TURE,
-#'   fill_missing = TURE,
-#'   use_palm_allometry = TURE,
-#'   flag_strangler = TURE,
+#'   stem = TRUE,
+#'   taper_correction = TRUE,
+#'   fill_missing = TRUE,
+#'   use_palm_allometry = TRUE,
+#'   flag_strangler = TRUE,
 #'   dbh_stranglers = 500,
 #'   maxrel = 0.2,
-#'   graph_problem_trees = TURE,
-#'   output_errors = TURE,
+#'   output_errors = TRUE,
 #'   DATA_path = NULL,
 #'   exclude_interval = NULL
 #' )
 #'
 #' # FIXME: These variable are defined but not used.
 #' site <- "barro colorado island"
-#' stem <- TURE
-#' taper_correction <- TURE
-#' fill_missing <- TURE
-#' use_palm_allometry <- TURE
-#' flag_strangler <- TURE
+#' stem <- TRUE
+#' taper_correction <- TRUE
+#' fill_missing <- TRUE
+#' use_palm_allometry <- TRUE
+#' flag_strangler <- TRUE
 #' dbh_stranglers <- 500
 #' maxrel <- 0.2
-#' graph_problem_trees <- TURE
-#' output_errors <- TURE
+#' graph_problem_trees <- TRUE
+#' output_errors <- TRUE
 #' DATA_path <- NULL
 #' exclude_interval <- NULL
 #' }
+#'
+#' #'   # Load required data & information
+#' pkgs <- c("BIOMASS","data.table","ggplot2","gridExtra")
+#' lapply(pkgs,function(x) devtools::use_package(x)) # not sure this is the proper way to install packages
+
 data_preparation <- function(site,
                              stem,
                              WD = NULL,
@@ -71,30 +75,44 @@ data_preparation <- function(site,
                              flag_strangler,
                              dbh_stranglers,
                              maxrel,
-                             graph_problem_trees,
                              output_errors,
                              DATA_path = NULL,
                              exclude_interval = NULL) {
   # TODO: Rename data_preparation() to prepare_data()
 
+  # site <- tolower(site)
+  # # TODO: DRY tolower(site)
+  # INDEX <- match(tolower(site), site.info$site)
+  # # TODO: Add this and many more checks in a new check_data_preparation()
+  # # TODO: Shorten message: Invalid `site`. See valid sites in `site.info`.
+  # if (is.na(INDEX)) {
+  #   stop("Site name should be one of the following: \n", paste(levels(factor(site.info$site)), collapse = " - "))
+  # }
+  # # TODO: Remove this if (): Make `DATA_path` the first argument with no default
+  # if (is.null(DATA_path)) {
+  #   path_folder <- getwd()
+  #   # TODO: Is the double assignment intentional? (i.e`<<-` instead of `<-`)
+  #   DATA_path <<- paste0(path_folder, "/data/")
+  # }
+  # # TODO: Replace `DATA_path` by `.data`: A list of datasets.
+  # # TODO: Write a helper that creates the list of datasets given a path.
+  # file_names <- list.files(paste0(getwd(),"/data/"))
+  # lapply(file_names,load,function(x) paste0(getwd(),"/data/",x))  # doesn't work
+  # for (i in 1:length( file_names))
+  # {
+  #   load(paste0(getwd(),"/data/",file_names[i]))
+  # }
+  ## For sake of simplicity, we point toward the data stored in "data" folder (see above for automation)
   site <- tolower(site)
-  # TODO: DRY tolower(site)
   INDEX <- match(tolower(site), site.info$site)
   # TODO: Add this and many more checks in a new check_data_preparation()
   # TODO: Shorten message: Invalid `site`. See valid sites in `site.info`.
   if (is.na(INDEX)) {
     stop("Site name should be one of the following: \n", paste(levels(factor(site.info$site)), collapse = " - "))
   }
-  # TODO: Remove this if (): Make `DATA_path` the first argument with no default
-  if (is.null(DATA_path)) {
-    path_folder <- getwd()
-    # TODO: Is the double assignment intentional? (i.e`<<-` instead of `<-`)
-    DATA_path <<- paste0(path_folder, "/data/")
-  }
-  # TODO: Replace `DATA_path` by `.data`: A list of datasets.
-  # TODO: Write a helper that creates the list of datasets given a path.
+  DATA_path <- paste0(getwd(), "/data/")
+  path_folder <- getwd()
   files <- list.files(DATA_path)
-
   # TODO: Relying on string matching might be dangerous.
   ifelse(
     stem,
@@ -102,14 +120,14 @@ data_preparation <- function(site,
     files <- files [grep("full", files)]
   )
 
-  # TODO: Why not output a list of objects instead of files in a directory?
-  ifelse(
-    # FIXME: path_folder is undefined if user provide DATA_path, so this fails.
-    #   Define `path_folder` here again, or add argument `output_path`?
-    !dir.exists(file.path(paste0(path_folder, "/output"))),
-    dir.create(file.path(paste0(path_folder, "/output"))),
-    FALSE
-  )
+  # # TODO: Why not output a list of objects instead of files in a directory?
+  # ifelse(
+  #   # FIXME: path_folder is undefined if user provide DATA_path, so this fails.
+  #   #   Define `path_folder` here again, or add argument `output_path`?
+  #   !dir.exists(file.path(paste0(path_folder, "/output"))),
+  #   dir.create(file.path(paste0(path_folder, "/output"))),
+  #   FALSE
+  # )
 
   # TODO: NA is of type logical. No need of NA_character, NA_integer, NA_real?
   # TODO: Maybe hide these boilerplate by writting create_receiving_df()
@@ -138,9 +156,11 @@ data_preparation <- function(site,
   #   If so, you may create `mean_date()` and `lapply()` it to each list-item.
   #   And do it in a helper hide unimportant details.
   # TODO: see seq_along()
+
+
   for (i in 1:length(files)) {
     # TODO: Again, this could be avoided if the censues come in a `.data` list
-    temp <- setDT(LOAD(paste(DATA_path, files[i], sep = "/")))
+    temp <- data.table::setDT(LOAD(paste(DATA_path, files[i], sep = "/")))
     temp$CensusID <- i
 
     # TODO: Too-long line. Need a meaningfully-named intermediary variable?
@@ -167,13 +187,22 @@ data_preparation <- function(site,
   rm(temp)
   # TODO: Comment why the first row is useless. It's now obvious.
   df <- df[-1, ]
+  message("Step 1: Data import done.")
+
+  # ID.TREE <- temp[status=="A"]$treeID[sample(1:nrow(temp[status=="A"]),10)]
+  # temp[treeID%in%ID.TREE]$dbh <- NA
+  # temp[treeID%in%ID.TREE]$hom <- NA
+  # bci_stem_2000 <- temp
+  # devtools::use_data(bci_stem_2000,overwrite = T)
+
+  # Load required data & information
+  data(list=c("WSG","site.info","ficus"))
+
 
   # TODO: Rename to correct_data()?
   #   But what does it mean to correct data? What columns of df are affected?
-  df <- data_correction(df, taper_correction, fill_missing, stem)
-  # TODO: Replace print() buy message().
-  # TODO: Move this message inside data_correction?
-  print("Step 1: data correction done.")
+  df <- consolidate_data(df, taper_correction, fill_missing, stem)
+
 
   # TODO: Reorder to match formals:
   #   df, use_palm_allometry, DBH = NULL, WD = NULL, H = NULL
@@ -181,12 +210,12 @@ data_preparation <- function(site,
   df <- computeAGB(df, WD = WD, H = NULL, use_palm_allometry)
 
   # TODO: Replace print() buy message()
-  print("Step 2: AGB calculation done.")
+  message("Step 2: AGB calculation done.")
 
   # TODO: Not using `code.broken`, Is this intentional?
   DF <- format_interval(df, flag_stranglers, dbh_stranglers)
   # TODO: Replace print() buy message()
-  print("Step 3: data formating done.")
+  message("Step 3: data formating done.")
 
   # TODO: If you use all arguments **in order** you can skip all from `=` sign
   #   e.g. Instead of: `fun(arg11 = arg1, arg2, arg2)`, use: `fun(arg1, arg2)`
@@ -195,7 +224,6 @@ data_preparation <- function(site,
     site,
     flag_stranglers = flag_stranglers,
     maxrel = maxrel,
-    graph_problem_trees = graph_problem_trees,
     output_errors = output_errors,
     exclude_interval = exclude_interval
   )
@@ -208,7 +236,6 @@ data_preparation <- function(site,
   rm(list = setdiff(ls(), c("DF", "path_folder", "SITE", lsf.str())))
   # TODO: No need to use return. Simply end with DF.
   #  The modern convension is to reserve return() only for returning early
-  return(DF)
 }
 
 
@@ -217,21 +244,32 @@ data_preparation <- function(site,
 
 # TODO: Review from here onwards
 
-#' Trim and correct data.
-#'
-#' Stack all censuses together and correct DBH, if required.
+#' This function checks for each stem that (i) its status (i.e. alive or dead) is consistent across all censuses (e.g. can't be dead and alive at next census), (ii) assign a mean census date (when missing) and (iii) interpolate DBHs when missing (fill_missing=T). Additionnaly, unecessary information (i.e. replication of dead trees/recruits) is discarded.
 #'
 #' @param taper_correction `TRUE` or `FALSE`, are you willing to apply Cushman
 #'   et al (2014) taper correction?
 #' @param fill_missing `TRUE` or `FALSE`, are you willing to extrapolate missing
-#'   DBH from surrounding DBH?
+#'   DBH from surrounding DBHs?
 #' @param stem Is the function applied over stem (stem=TRUE) or tree
 #'   (stem=FALSE) data?
 #'
-#' @return A data.table (data.frame) with all relevant variables.
+#' @return A data.table (data.frame) with 3 new variables: status1 (corrected status),dbh2 (corrected dbh) and hom2 (corrected height of measure). A unique stem id ("id") is created if stem = T.
 #'
-#' @export
-data_correction <- function(df, taper_correction, fill_missing, stem) {
+#' @examples
+#' data(df)
+#' # Correct for change in POM and missing value
+#' df <- consolidate_data(df, taper_correction=T, fill_missing=T, stem=T)
+#' df[treeID==240] # show the result with missing value
+#' # Correct for missing value only
+#' df <- consolidate_data(df, taper_correction=F, fill_missing=T, stem=T)
+#' df[treeID==240] # show the result with missing value
+#' # No correction
+#' df <- consolidate_data(df, taper_correction=F, fill_missing=F, stem=T)
+#' df[treeID==240] # show the result with missing value
+
+
+# QUestion: do I need to declare and examplify all functions that are called internally, such as correctDBH, Check_status, etc??
+consolidate_data <- function(df, taper_correction, fill_missing, stem) {
   if (stem) {
     df[, "id" := paste(treeID, stemID, sep = "-")] # creat a unique tree-stem ID
     df <- df[order(id, CensusID)]
@@ -244,20 +282,26 @@ data_correction <- function(df, taper_correction, fill_missing, stem) {
 
   # Add average date of census when missing for alive trees (mandatory for interpolating DBHs)
   df[, "year" := round(mean(as.numeric(format(as.Date(ExactDate, origin = "1960-1-1"), "%Y")), na.rm = T)), by = CensusID] # Assign 1 year per census
-  DATE <- df[, .(date = mean(date, na.rm = T)), by = year]
+  if ("quadrat"%in%names(df)) {
+  DATE <- df[,.(date=mean(date,na.rm=T)),by=.(year,quadrat)][order(year)]
+  DATE[,"ID1":=paste(year,quadrat,sep="-")]
+  df$ID <- paste(df$year,df$quadrat,sep="-")
+  df <- within(df,date[is.na(date)] <- DATE$date[match(df[is.na(date),ID],DATE$ID1)])
+  df[,ID:=NULL]
+  } else {
+  DATE <- df[,.(date=mean(date,na.rm=T)),by=year][order(year)]
   df <- within(df, date[is.na(date)] <- DATE$date[match(df[is.na(date), "year"]$year, DATE$year)])
-
+  }
   # remove stems without any measurement in any census
   NO.MEASURE <- df[, all(is.na(dbh)), by = id]
   df <- df[!id %in% NO.MEASURE$treeID[NO.MEASURE$V1]]
 
   # Taper correction or missing values: -> fill gaps for missing values
-  system.time(df[, c("dbh2", "hom2") := correctDBH(.SD, taper_correction = taper_correction, fill_missing = fill_missing), by = id]) # might be time consuming (25 minutes for BCI)
-  table(is.na(df$dbh2), df$status1)
+  df[, c("dbh2", "hom2") := correctDBH(.SD, taper_correction = taper_correction, fill_missing = fill_missing), by = id] # might be time consuming (25 minutes for BCI)
   NO.MEASURE <- df[, all(is.na(dbh2)), by = treeID]
-  table(NO.MEASURE$V1)
   df <- df[!treeID %in% NO.MEASURE$treeID[NO.MEASURE$V1]] # remove trees without any measurement
   return(df)
+  message("Step 1: data correction done.")
 }
 
 #' Data correction.
@@ -274,7 +318,10 @@ data_correction <- function(df, taper_correction, fill_missing, stem) {
 #'
 #' @return A data.table (data.frame) with all relevant variables.
 #'
-#' @export
+#' @examples
+#' data(df)
+#' correctDBH(df[treeID==240]) # DOESN'T work. Need to pass 'check_status' first
+#'
 correctDBH <- function(DT, taper_correction, fill_missing) {
   dbh2 <- DT[status1 == "A", "dbh"][[1]]
   hom2 <- DT[status1 == "A", round(hom * 100) / 100] # round hom to be at 1.3 meter (avoiding odd rounding)
@@ -329,7 +376,7 @@ correctDBH <- function(DT, taper_correction, fill_missing) {
     # Replicate dbh & hom if no NA values or fill_missing = `FALSE`
     dbh2 <- DT[, "dbh"][[1]]
     hom2 <- DT[, round(hom * 100) / 100]
-    hom2[is.na(hom2)] <- 1.3
+    hom2[is.na(hom2) & !is.na(dbh2)] <- 1.3
     if (taper_correction & any(hom2 != 1.3, na.rm = T)) {
       loc1 <- hom2 != 1.3 & !is.na(dbh2)
       if (!any(is.na(loc1))) {
@@ -411,8 +458,10 @@ computeAGB <- function(df,
 #'   is implemented.
 #'
 #' @return A data.table (data.frame) with all relevant variables.
-#'
+#' @imports BIOMASS  # how do I force the usage of this package (mandatory for this funtion to work)
 #' @export
+
+
 assignWD <- function(DAT, WD = NULL) {
   if (is.null(DATA_path)) {
     DATA_path <<- paste0(path_folder, "/data/")
@@ -429,9 +478,9 @@ assignWD <- function(DAT, WD = NULL) {
     wsg <- unique(WSG[wsgdatamatch, c("genus", "species", "spwood") ])
     names(wsg) <- c("genus", "species", "wd")
     wsg <- wsg[!is.na(wsg$wd), ]
-    A <- invisible(getWoodDensity(SP$Genus, SP$Species, stand = rep(site, nrow(SP)), family = NULL, region = "World", addWoodDensityData = wsg))
+    A <- invisible(BIOMASS::getWoodDensity(SP$Genus, SP$Species, stand = rep(site, nrow(SP)), family = NULL, addWoodDensityData = wsg))
   } else {
-    A <- invisible(getWoodDensity(SP$Genus, SP$Species, stand = rep(site, nrow(SP)), family = NULL, region = "World", addWoodDensityData = WD))
+    A <- invisible(BIOMASS::getWoodDensity(SP$Genus, SP$Species, stand = rep(site, nrow(SP)), family = NULL, region = "World", addWoodDensityData = WD))
   }
 
   # Assign WD by taxon
@@ -474,7 +523,7 @@ assignAGB <- function(DAT, DBH = NULL, H = NULL) {
   } else {
     D <- DAT$dbh2
   }
-  if (!any(grepl("wsg", names(df)))) {
+  if (!any(grepl("wsg", names(DAT)))) {
     stop("you must assign WD first through assignWD()")
   }
   if (!is.null(H)) {
@@ -521,7 +570,7 @@ format_interval <- function(df,
   YEAR <- unique(df$year)
 
   # Receiveing data set
-  DF2 <- data.table("treeID" = NA, "dbh1" = NA, "dbhc1" = NA, "status1" = NA, "code1" = NA, "hom1" = NA, "sp" = NA, "wsg" = NA, "agb1" = NA, "date1" = NA, "dbh2" = NA, "dbhc2" = NA, "status2" = NA, "code2" = NA, "hom2" = NA, "agb2" = NA, "date2" = NA, "broken" = NA, "agbl" = NA, "agb1.surv" = NA, "interval" = NA, "year" = NA)
+  DF2 <- data.table::setDT(data.frame("treeID" = NA, "dbh1" = NA, "dbhc1" = NA, "status1" = NA, "code1" = NA, "hom1" = NA, "sp" = NA, "wsg" = NA, "agb1" = NA, "date1" = NA, "dbh2" = NA, "dbhc2" = NA, "status2" = NA, "code2" = NA, "hom2" = NA, "agb2" = NA, "date2" = NA, "broken" = NA, "agbl" = NA, "agb1.surv" = NA, "interval" = NA, "year" = NA))
 
   for (j in 1:(length(YEAR) - 1)) { # 4 minutes to run
     i1 <- df[year == YEAR[j] & status1 != "D", .I[which.max(dbh2)], by = treeID] # keep only information for the biggest alive stem per treeID
@@ -539,7 +588,7 @@ format_interval <- function(df,
     cens2 <- BB2[, c("treeID", "dbh2", "dbhc2", "status2", "code2", "hom2", "agb2", "date2", "id2")]
     cens2 <- within(cens2, status2[is.na(status2)] <- "D")
 
-    ID <- data.table(treeID = unique(c(cens1$treeID, cens2$treeID)))
+    ID <- data.table::setDT(data.frame(treeID = unique(c(cens1$treeID, cens2$treeID))))
     ID <- merge(ID, cens1, by = "treeID", all.x = T)
     ID <- merge(ID, cens2, by = "treeID", all.x = T)
 
@@ -640,7 +689,6 @@ flag_errors <- function(DF,
                         site,
                         flag_stranglers,
                         maxrel,
-                        graph_problem_trees,
                         output_errors,
                         exclude_interval) {
   mean.prod <- determine_mean_prod(DF, site, flag_stranglers, exclude_interval)
@@ -661,10 +709,10 @@ flag_errors <- function(DF,
   # ID <- DF[error!=0 & !code%in%c("D","R"),nrow(.SD)>=1,by=treeID]
   # ID <- ID[V1==T,treeID]
   ID <- unique(DF[error != 0, treeID])
-  if (length(ID) / 12 > 10) {
-    A <- menu(c("Y", "N"), title = "There are more than 144 trees (10 pages) to be printed. Do you want to print them?")
-    ifelse(A == 1, graph_problem_trees <- T, graph_problem_trees <- F)
-  }
+
+  A <- menu(c("Y", "N"), title = paste("There are",length(ID), "trees with errors. Do you want to print",round(length(ID)/15),"pages?"))
+  ifelse(A == 1, graph_problem_trees <- T, graph_problem_trees <- F)
+
   if (graph_problem_trees) { # Plot trees with large major error
     YEAR <- levels(factor(DF$year))
     CX <- 2
@@ -688,13 +736,12 @@ flag_errors <- function(DF,
       Y$point <- 0
       Y$point[Y$error != 0] <- 1
 
-      GRAPH[[i]] <- ggplot(X, aes(x = y1, y = dbhc1)) + geom_point(size = 2) + geom_segment(data = Y, aes(x = y1, y = dbhc1, xend = year, yend = dbhc2, linetype = as.factor(line))) + geom_point(data = X[point == 1], aes(x = year, y = dbhc2), col = 2) + labs(title = paste0(unique(X$name), " (", ID[n], ")"), x = " ", y = "dbh (mm)") + geom_text(data = Y, aes(x = y1, y = dbh1 - (0.05 * dbh1)), label = round(Y$hom1, 2), cex = CX) + geom_text(data = YY, aes(x = year, y = d02 - (0.05 * d02)), label = round(YY$hom2, 2), cex = CX) + geom_text(data = Y, aes(x = year, y = 0.3 * max(dbhc2)), label = Y$dbh1, cex = CX, angle = 90, vjust = 1) + geom_text(data = YY, aes(x = year, y = 0.3 * max(d2)), label = YY$d02, cex = CX, angle = 90, vjust = 1) + theme(plot.title = element_text(size = 5 * CX, face = "bold"), axis.title.y = element_text(size = 5 * CX, , face = "bold"), axis.text.y = element_text(size = 4 * CX), axis.text.x = element_text(size = 4 * CX, vjust = 0, angle = 30), panel.background = element_blank(), strip.text = element_text(size = 4 * CX, face = "bold"), strip.background = element_rect("lightgrey"), panel.spacing = unit(0.1, "lines")) + scale_linetype_manual(values = c("0" = "dashed", "1" = "solid")) + guides(linetype = F, colour = F) + scale_x_continuous(limits = c(min(as.numeric(YEAR)) - 3, max(as.numeric(YEAR)) + 3), breaks = as.numeric(YEAR)) + scale_y_continuous(limits = c(0.2 * max(YY$d2), max(X$dbhc2, X$dbhc1)))
+      GRAPH[[i]] <- ggplot2::ggplot(X, aes(x = y1, y = dbhc1)) + geom_point(size = 2) + geom_segment(data = Y, aes(x = y1, y = dbhc1, xend = year, yend = dbhc2, linetype = as.factor(line))) + geom_point(data = X[point == 1], aes(x = year, y = dbhc2), col = 2) + labs(title = paste0(unique(X$name), " (", ID[n], ")"), x = " ", y = "dbh (mm)") + geom_text(data = Y, aes(x = y1, y = dbh1 - (0.05 * dbh1)), label = round(Y$hom1, 2), cex = CX) + geom_text(data = YY, aes(x = year, y = d02 - (0.05 * d02)), label = round(YY$hom2, 2), cex = CX) + geom_text(data = Y, aes(x = year, y = 0.3 * max(dbhc2)), label = Y$dbh1, cex = CX, angle = 90, vjust = 1) + geom_text(data = YY, aes(x = year, y = 0.3 * max(d2)), label = YY$d02, cex = CX, angle = 90, vjust = 1) + theme(plot.title = element_text(size = 5 * CX, face = "bold"), axis.title.y = element_text(size = 5 * CX, , face = "bold"), axis.text.y = element_text(size = 4 * CX), axis.text.x = element_text(size = 4 * CX, vjust = 0, angle = 30), panel.background = element_blank(), strip.text = element_text(size = 4 * CX, face = "bold"), strip.background = element_rect("lightgrey"), panel.spacing = unit(0.1, "lines")) + scale_linetype_manual(values = c("0" = "dashed", "1" = "solid")) + guides(linetype = F, colour = F) + scale_x_continuous(limits = c(min(as.numeric(YEAR)) - 3, max(as.numeric(YEAR)) + 3), breaks = as.numeric(YEAR)) + scale_y_continuous(limits = c(0.2 * max(YY$d2), max(X$dbhc2, X$dbhc1)))
 
 
-      if (i %% 15 == 0 | i < 15) { ## print 8 plots on a page
+      if (i %% 15 == 0) { ## print 15 plots per page
         a <- a + 1
-        plot(do.call(grid.arrange, GRAPH))
-        ggsave(do.call(grid.arrange, GRAPH), file = paste0(path_folder, "/output/trees_with_major_errors_", a, ".pdf"), width = 29.7, height = 20.1, units = "cm")
+        ggplot2::ggsave(do.call(gridExtra::grid.arrange, GRAPH), file = paste0(path_folder, "/output/trees_with_major_errors_", a, ".pdf"), width = 29.7, height = 20.1, units = "cm")
         GRAPH <- list() # reset plot
         i <- 0 # reset index
       }
@@ -731,13 +778,13 @@ determine_mean_prod <- function(DF, site, flag_stranglers, exclude_interval) {
   AREA <- site.info$size[match(site, site.info$site)]
   if (missing(exclude_interval)) {
     ifelse(flag_stranglers,
-      PRODA <- data.table(DF)[ficus != 1, .(prod = rec_flux(sum(agb1, na.rm = T), sum(agb2[code != "D"], na.rm = T), sum(agb1[code %in% c("A", "AC")], na.rm = T), AREA, mean(int, na.rm = T))), by = interval],
-      PRODA <- data.table(DF)[, .(prod = rec_flux(sum(agb1, na.rm = T), sum(agb2[code != "D"], na.rm = T), sum(agb1[code %in% c("A", "AC")], na.rm = T), AREA, mean(int, na.rm = T))), by = interval]
+      PRODA <- data.table::setDT(DF)[ficus != 1, .(prod = rec_flux(sum(agb1, na.rm = T), sum(agb2[code != "D"], na.rm = T), sum(agb1[code %in% c("A", "AC")], na.rm = T), AREA, mean(int, na.rm = T))), by = interval],
+      PRODA <- data.table::setDT(DF)[, .(prod = rec_flux(sum(agb1, na.rm = T), sum(agb2[code != "D"], na.rm = T), sum(agb1[code %in% c("A", "AC")], na.rm = T), AREA, mean(int, na.rm = T))), by = interval]
     )
   } else {
     ifelse(flag_stranglers,
-      PRODA <- data.table(DF)[ficus != 1 & !interval %in% c(exclude_interval), .(prod = rec_flux(sum(agb1, na.rm = T), sum(agb2[code != "D"], na.rm = T), sum(agb1[code %in% c("A", "AC")], na.rm = T), AREA, mean(int, na.rm = T))), by = interval],
-      PRODA <- data.table(DF)[!interval %in% c(exclude_interval), .(prod = rec_flux(sum(agb1, na.rm = T), sum(agb2[code != "D"], na.rm = T), sum(agb1[code %in% c("A", "AC")], na.rm = T), AREA, mean(int, na.rm = T))), by = interval]
+      PRODA <- data.table::setDT(DF)[ficus != 1 & !interval %in% c(exclude_interval), .(prod = rec_flux(sum(agb1, na.rm = T), sum(agb2[code != "D"], na.rm = T), sum(agb1[code %in% c("A", "AC")], na.rm = T), AREA, mean(int, na.rm = T))), by = interval],
+      PRODA <- data.table::setDT(DF)[!interval %in% c(exclude_interval), .(prod = rec_flux(sum(agb1, na.rm = T), sum(agb2[code != "D"], na.rm = T), sum(agb1[code %in% c("A", "AC")], na.rm = T), AREA, mean(int, na.rm = T))), by = interval]
     )
   }
   mPROD <- mean((PRODA$prod))

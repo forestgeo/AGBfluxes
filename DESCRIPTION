@@ -1,7 +1,7 @@
 Package: AGBfluxes
 Title: Compute Flux of Biomass at ForestGEO Sites
 Version: 0.0.0.9001
-Authors@R: 
+Authors@R:
     c(person(given = "Ervan",
              family = "Rutishauser",
              role = c("aut", "ctr", "cre"),
@@ -15,10 +15,12 @@ Authors@R:
              email = "ForestGEO@si.edu"))
 Description: Compute flux of biomass at ForestGEO sites.
 License: GPL-3
-Imports: 
+Imports:
     BIOMASS,
-    data.table
-Suggests: 
+    data.table,
+    ggplot2,
+    gridExtra
+Suggests:
     covr,
     testthat
 Encoding: UTF-8
