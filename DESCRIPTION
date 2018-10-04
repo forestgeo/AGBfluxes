@@ -19,7 +19,8 @@ Imports:
     BIOMASS,
     data.table,
     ggplot2,
-    gridExtra
+    gridExtra,
+    stats
 Suggests:
     covr,
     testthat

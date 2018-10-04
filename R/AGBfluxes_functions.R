@@ -326,12 +326,12 @@ correctDBH <- function(DT, taper_correction, fill_missing) {
     # dead stem
     if (any(grep("D", DT$status1))) {
       ifelse(length(dbh2) %in% loc, RULE <- 2, RULE <- 1) # if last value is NA, last valid DBH measure is replicated (RULE=2)
-      tryCatch(approx(DATE, dbh2, rule = RULE, xout = DT$date[loc])$y, error = function(e) print(unique(paste("Stem id", DT$id, "generates a problem."))))
-      if (any(is.na(approx(DATE, dbh2, rule = RULE, xout = DATE[loc])$y))) {
+      tryCatch(stats::approx(DATE, dbh2, rule = RULE, xout = DT$date[loc])$y, error = function(e) print(unique(paste("Stem id", DT$id, "generates a problem."))))
+      if (any(is.na(stats::approx(DATE, dbh2, rule = RULE, xout = DATE[loc])$y))) {
         print(DT$id)
       }
-      dbh2[loc] <- approx(DATE, dbh2, rule = RULE, xout = DATE[loc])$y
-      hom2[loc] <- approx(DATE, hom2, rule = RULE, xout = DATE[loc])$y
+      dbh2[loc] <- stats::approx(DATE, dbh2, rule = RULE, xout = DATE[loc])$y
+      hom2[loc] <- stats::approx(DATE, hom2, rule = RULE, xout = DATE[loc])$y
 
       dbh2 <- c(dbh2, NA) # add NA at year of death
       hom2 <- c(hom2, NA)
@@ -339,9 +339,9 @@ correctDBH <- function(DT, taper_correction, fill_missing) {
     else {
       # alive stems
       ifelse(length(dbh2) %in% loc, RULE <- 2, RULE <- 1) # if last value is NA, last valid BDBH measure is replicated (RULE=2)
-      tryCatch(approx(DT$date, dbh2, rule = RULE, xout = DT$date[loc])$y, error = function(e) print(paste("Stem id", DT$id, "generates a problem.")))
-      dbh2[loc] <- approx(DT$date, dbh2, rule = RULE, xout = DT$date[loc])$y
-      hom2[loc] <- approx(DT$date, hom2, rule = RULE, xout = DT$date[loc])$y
+      tryCatch(stats::approx(DT$date, dbh2, rule = RULE, xout = DT$date[loc])$y, error = function(e) print(paste("Stem id", DT$id, "generates a problem.")))
+      dbh2[loc] <- stats::approx(DT$date, dbh2, rule = RULE, xout = DT$date[loc])$y
+      hom2[loc] <- stats::approx(DT$date, hom2, rule = RULE, xout = DT$date[loc])$y
     } # end of alive stems
 
     # Resprouts
@@ -783,14 +783,14 @@ loess.fun <- function(x, var, range, weights = NULL) {
   else {
     fit <- locfit(var ~ lAGB, data = x, weights = weights)
   }
-  pred <- predict(fit, newdata = list(lAGB = range))
+  pred <- stats::predict(fit, newdata = list(lAGB = range))
   return(data.frame(lAGB = range, y = as.numeric(pred)))
 }
 
 # loess.fun <- function(x,var)  {
 # 	fit <- locfit(var ~ lAGB, data=x)
 # 	Xrange = as.numeric(quantile(x,seq(0.01,1,.01),na.rm=T)) # 100 values to estimate the smooth spline
-# 	pred <- predict(fit,newdata=list(lAGB=Xrange))
+# 	pred <- stats::predict(fit,newdata=list(lAGB=Xrange))
 # 	return(data.frame(lAGB=Xrange,y=as.numeric(pred)))
 # }
 
