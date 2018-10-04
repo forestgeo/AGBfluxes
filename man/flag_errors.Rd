@@ -4,8 +4,8 @@
 \alias{flag_errors}
 \title{Flag major errors.}
 \usage{
-flag_errors(DF, site, flag_stranglers, maxrel, graph_problem_trees,
-  output_errors, exclude_interval)
+flag_errors(DF, site, flag_stranglers, maxrel, output_errors,
+  exclude_interval)
 }
 \arguments{
 \item{DF}{A data.table.}

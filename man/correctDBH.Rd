@@ -23,3 +23,8 @@ Perform two mains tasks: (a) apply a taper correction when POM is > 130 cm,
 and (b) linear interpolation values when missing DBHs. Interpolation of
 missing values is done by averaging surrounding available DBH values.
 }
+\examples{
+data(df)
+correctDBH(df[treeID==240]) # DOESN'T work. Need to pass 'check_status' first
+
+}
