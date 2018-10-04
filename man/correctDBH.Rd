@@ -2,7 +2,9 @@
 % Please edit documentation in R/AGBfluxes_functions.R
 \name{correctDBH}
 \alias{correctDBH}
-\title{Data correction.}
+\title{Perform two mains tasks: (a) apply a taper correction when POM is > 130 cm,
+and (b) linear interpolation values when missing DBHs. Interpolation of
+missing values is done by averaging surrounding available DBH values.}
 \usage{
 correctDBH(DT, taper_correction, fill_missing)
 }
