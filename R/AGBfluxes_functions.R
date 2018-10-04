@@ -705,17 +705,9 @@ flag_errors <- function(DF,
   # ID <- DF[error!=0 & !code%in%c("D","R"),nrow(.SD)>=1,by=treeID]
   # ID <- ID[V1==T,treeID]
   ID <- unique(DF[error != 0, treeID])
-<<<<<<< HEAD
-
   A <- menu(c("Y", "N"), title = paste("There are",length(ID), "trees with errors. Do you want to print",round(length(ID)/15),"pages?"))
   ifelse(A == 1, graph_problem_trees <- T, graph_problem_trees <- F)
 
-=======
-  if (length(ID) / 15 > 2) {
-    A <- menu(c("Y", "N"), title = paste("There are",length(ID), "trees with errors. Do you want to print",round(length(ID)/15),"pages?"))
-    ifelse(A == 1, graph_problem_trees <- T, graph_problem_trees <- F)
-  }
->>>>>>> 7e2815a936a75df949169ccd58c280e6ec9e6217
   if (graph_problem_trees) { # Plot trees with large major error
     YEAR <- levels(factor(DF$year))
     CX <- 2
