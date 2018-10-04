@@ -29,8 +29,6 @@
 #'
 #' @return A data.table (data.frame) with all relevant variables.
 #'
-#' @export
-#'
 #' @examples
 #' \dontrun{
 #' data_preparation(
@@ -103,6 +101,7 @@ data_preparation <- function(site,
   #   load(paste0(getwd(),"/data/",file_names[i]))
   # }
   ## For sake of simplicity, we point toward the data stored in "data" folder (see above for automation)
+<<<<<<< HEAD
   site <- tolower(site)
   INDEX <- match(tolower(site), site.info$site)
   # TODO: Add this and many more checks in a new check_data_preparation()
@@ -110,6 +109,8 @@ data_preparation <- function(site,
   if (is.na(INDEX)) {
     stop("Site name should be one of the following: \n", paste(levels(factor(site.info$site)), collapse = " - "))
   }
+=======
+>>>>>>> 7e2815a936a75df949169ccd58c280e6ec9e6217
   DATA_path <- paste0(getwd(), "/data/")
   path_folder <- getwd()
   files <- list.files(DATA_path)
@@ -304,8 +305,7 @@ consolidate_data <- function(df, taper_correction, fill_missing, stem) {
   message("Step 1: data correction done.")
 }
 
-#' Data correction.
-#'
+
 #' Perform two mains tasks: (a) apply a taper correction when POM is > 130 cm,
 #' and (b) linear interpolation values when missing DBHs. Interpolation of
 #' missing values is done by averaging surrounding available DBH values.
@@ -406,8 +406,6 @@ correctDBH <- function(DT, taper_correction, fill_missing) {
 #'   valid for South America.
 #'
 #' @return A data.table (data.frame) with all relevant variables.
-#'
-#' @export
 computeAGB <- function(df,
                        use_palm_allometry,
                        DBH = NULL,
@@ -459,7 +457,7 @@ computeAGB <- function(df,
 #'
 #' @return A data.table (data.frame) with all relevant variables.
 #' @imports BIOMASS  # how do I force the usage of this package (mandatory for this funtion to work)
-#' @export
+#'
 
 
 assignWD <- function(DAT, WD = NULL) {
@@ -516,7 +514,7 @@ assignWD <- function(DAT, WD = NULL) {
 #'
 #' @return A vector with AGB values (in Mg).
 #'
-#' @export
+#'
 assignAGB <- function(DAT, DBH = NULL, H = NULL) {
   if (!is.null(DBH)) {
     D <- DAT[, get(DBH)]
@@ -562,7 +560,7 @@ assignAGB <- function(DAT, DBH = NULL, H = NULL) {
 #'
 #' @return A formated data.table.
 #'
-#' @export
+#'
 format_interval <- function(df,
                             flag_stranglers,
                             dbh_stranglers,
@@ -684,7 +682,7 @@ format_interval <- function(df,
 #'
 #' @return A data.table (data.frame) with all relevant variables.
 #'
-#' @export
+#'
 flag_errors <- function(DF,
                         site,
                         flag_stranglers,
@@ -709,10 +707,17 @@ flag_errors <- function(DF,
   # ID <- DF[error!=0 & !code%in%c("D","R"),nrow(.SD)>=1,by=treeID]
   # ID <- ID[V1==T,treeID]
   ID <- unique(DF[error != 0, treeID])
+<<<<<<< HEAD
 
   A <- menu(c("Y", "N"), title = paste("There are",length(ID), "trees with errors. Do you want to print",round(length(ID)/15),"pages?"))
   ifelse(A == 1, graph_problem_trees <- T, graph_problem_trees <- F)
 
+=======
+  if (length(ID) / 15 > 2) {
+    A <- menu(c("Y", "N"), title = paste("There are",length(ID), "trees with errors. Do you want to print",round(length(ID)/15),"pages?"))
+    ifelse(A == 1, graph_problem_trees <- T, graph_problem_trees <- F)
+  }
+>>>>>>> 7e2815a936a75df949169ccd58c280e6ec9e6217
   if (graph_problem_trees) { # Plot trees with large major error
     YEAR <- levels(factor(DF$year))
     CX <- 2
@@ -773,7 +778,7 @@ flag_errors <- function(DF,
 #'
 #' @return Mean productivity in Mg/ha/yr.
 #'
-#' @export
+#'
 determine_mean_prod <- function(DF, site, flag_stranglers, exclude_interval) {
   AREA <- site.info$size[match(site, site.info$site)]
   if (missing(exclude_interval)) {
@@ -803,7 +808,7 @@ determine_mean_prod <- function(DF, site, flag_stranglers, exclude_interval) {
 #'
 #' @return A smoothed prediction of the variable of interest.
 #'
-#' @export
+#'
 loess.fun <- function(x, var, range, weights = NULL) {
   if (is.null(weights)) {
     fit <- locfit(var ~ lAGB, data = x)
@@ -832,7 +837,7 @@ loess.fun <- function(x, var, range, weights = NULL) {
 #' @return A data.table (data.frame) with a new colum "status1" where values can
 #'   be "P"(prior),"A"(alive),"D"(dead) and "Dr"(dead replicated).
 #'
-#' @export
+#'
 check_status <- function(DT) {
   if (!"status" %in% names(DT)) {
     DT$status <- NA
@@ -867,7 +872,7 @@ check_status <- function(DT) {
 #'
 #' @return Import the object.
 #'
-#' @export
+#'
 LOAD <- function(saveFile) {
   env <- new.env()
   load(saveFile, envir = env)
@@ -886,7 +891,7 @@ LOAD <- function(saveFile) {
 #'
 #' @return Update the column 'status1' with consistent information.
 #'
-#' @export
+#'
 # # FIXME: Can we remove this?
 # # # Debug
 # DT <- DF2[treeID==391]
@@ -955,7 +960,7 @@ assign_status <- function(DT) {
 #' @return Add three columns to the data.frame: quadrat's number, centroids X
 #'   and Y.
 #'
-#' @export
+#'
 create_quad <- function(census, grid_size, x = "gx", y = "gy", fit.in.plot) {
   X <- census[, grep(x, names(census)), with = F][[1]]
   Y <- census[, grep(y, names(census)), with = F][[1]]
@@ -1017,7 +1022,7 @@ create_quad <- function(census, grid_size, x = "gx", y = "gy", fit.in.plot) {
 #'
 #' @return Absolute recruitment flux in % per year.
 #'
-#' @export
+#'
 rec_flux <- function(A0, A1, S1, area, time) {
   rec <- log(A1 / S1) * (A1 - A0) / (area * time * log(A1 / A0))
   ifelse(rec == Inf, 0, rec)
@@ -1025,7 +1030,7 @@ rec_flux <- function(A0, A1, S1, area, time) {
 }
 
 #' @rdname rec_flux
-#' @export
+
 loss_flux <- function(A0, A1, S1, area, time) {
   LO <- (log(A0 / S1) / log(A1 / A0)) * ((A1 - A0) / (area * time))
   ifelse(LO == Inf, 0, LO)
