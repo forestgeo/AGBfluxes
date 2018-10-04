@@ -44,18 +44,22 @@ reference:
 
   - title: Functions
     contents:
+      - -matches('bci.spptable')
       - -matches('bci_stem_1995')
       - -matches('bci_stem_2000')
       - -matches('bci_stem_2000')
       - -matches('ficus')
       - -matches('site.info')
       - -matches('WSG')
+      - -matches('df')
 
   - title: Datasets
     contents:
+      - 'bci.spptable'
       - 'bci_stem_1995'
       - 'bci_stem_2000'
       - 'bci_stem_2000'
       - 'ficus'
       - 'site.info'
       - 'WSG'
+      - 'df'
