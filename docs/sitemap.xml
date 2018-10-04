@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://forestgeo.github.io/AGBfluxes//index.html</loc>
+  </url>
+  <url>
+    <loc>https://forestgeo.github.io/AGBfluxes//reference/AGBfluxes-package.html</loc>
+  </url>
+  <url>
+    <loc>https://forestgeo.github.io/AGBfluxes//reference/bci.spptable.html</loc>
+  </url>
+  <url>
+    <loc>https://forestgeo.github.io/AGBfluxes//reference/bci_stem_year.html</loc>
+  </url>
+  <url>
+    <loc>https://forestgeo.github.io/AGBfluxes//reference/data_preparation.html</loc>
+  </url>
+  <url>
+    <loc>https://forestgeo.github.io/AGBfluxes//reference/df.html</loc>
+  </url>
+  <url>
+    <loc>https://forestgeo.github.io/AGBfluxes//reference/ficus.html</loc>
+  </url>
+  <url>
+    <loc>https://forestgeo.github.io/AGBfluxes//reference/site.info.html</loc>
+  </url>
+  <url>
+    <loc>https://forestgeo.github.io/AGBfluxes//reference/WSG.html</loc>
+  </url>
+</urlset>
