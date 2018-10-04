@@ -84,10 +84,11 @@ data_preparation <- function(site,
   ## For sake of simplicity, we point toward the data stored in "data" folder (see above for automation)
   site <- tolower(site)
   INDEX <- match(tolower(site), site.info$site)
-  # TODO: Add this and many more checks in a new check_data_preparation()
-  # TODO: Shorten message: Invalid `site`. See valid sites in `site.info`.
   if (is.na(INDEX)) {
-    stop("Site name should be one of the following: \n", paste(levels(factor(site.info$site)), collapse = " - "))
+    stop(
+      "Site name should be one of the following: \n",
+      paste(levels(factor(site.info$site)), collapse = " - "), call. = FALSE
+    )
   }
 
   DATA_path <- paste0(getwd(), "/data/")
@@ -97,7 +98,7 @@ data_preparation <- function(site,
   ifelse(
     stem,
     files <- files[grep("stem", files)],
-    files <- files [grep("full", files)]
+    files <- files[grep("full", files)]
   )
 
   # # TODO: Why not output a list of objects instead of files in a directory?
@@ -109,35 +110,19 @@ data_preparation <- function(site,
   #   FALSE
   # )
 
-  # TODO: NA is of type logical. No need of NA_character, NA_integer, NA_real?
-  # TODO: Maybe hide these boilerplate by writting create_receiving_df()
   # Create the receiving data.frame
-  df <- data.frame(
-      "treeID" = NA,
-      "stemID" = NA,
-      "tag" = NA,
-      "StemTag" = NA,
-      "sp" = NA,
-      "quadrat" = NA,
-      "gx" = NA,
-      "gy" = NA,
-      "dbh" = NA,
-      "hom" = NA,
-      "ExactDate" = NA,
-      "DFstatus" = NA,
-      "codes" = NA,
-      "date" = NA,
-      "status" = NA,
-      "CensusID" = NA,
-      "year" = NA
-    )
+  nms <- c(
+    "treeID", "stemID","tag","StemTag","sp", "quadrat", "gx","gy", "dbh", "hom",
+    "ExactDate", "DFstatus","codes","date", "status","CensusID", "year"
+  )
+  # FIXME: Growing an object can be terribly slow. Instead of creating a dataframe
+  # with one row you should create a dataframe with as many rows as you need.
+  df <- receiving_df(nms)
 
   # TODO: Is this code mainly finding the mean date from each census?
   #   If so, you may create `mean_date()` and `lapply()` it to each list-item.
   #   And do it in a helper hide unimportant details.
   # TODO: see seq_along()
-
-
   for (i in 1:length(files)) {
     # TODO: Again, this could be avoided if the censues come in a `.data` list
     temp <- data.table::setDT(LOAD(paste(DATA_path, files[i], sep = "/")))
@@ -154,7 +139,8 @@ data_preparation <- function(site,
         # TODO: glue::glue() and friends help write more readable error messages
         paste0(
           "The data must have a column named ", names(df)[ID], collapse = " - "
-        )
+        ),
+        call. = FALSE
       )
     }
 
@@ -175,12 +161,10 @@ data_preparation <- function(site,
   # bci_stem_2000 <- temp
   # devtools::use_data(bci_stem_2000,overwrite = T)
 
-  # FIXME: You don't need utils::data(). These objects are exported (i.e. they
-  # live in data/), therefore you can refer to them direclty -- they are
-  # automatically loaded in the namespace of your package. I would refer to them
-  # as AGBflux::WSG, AGBflux::site.info, and AGBflux::ficus.
+  # TODO: You don't need utils::data(). These objects are exported (i.e. they
+  # live in data/), therefore you can refer to them direclty.
   # Load required data & information
-  data(list=c("WSG","site.info","ficus"))
+  utils::data(list = c("WSG", "site.info", "ficus"))
 
 
   # TODO: Rename to correct_data()?
@@ -190,19 +174,14 @@ data_preparation <- function(site,
 
   # TODO: Reorder to match formals:
   #   df, use_palm_allometry, DBH = NULL, WD = NULL, H = NULL
-  # FIXME: This fails
+  # FIXME: This fails because WD can't be found.
   df <- computeAGB(df, WD = WD, H = NULL, use_palm_allometry)
 
-  # TODO: Replace print() buy message()
   message("Step 2: AGB calculation done.")
 
-  # TODO: Not using `code.broken`, Is this intentional?
   DF <- format_interval(df, flag_stranglers, dbh_stranglers)
-  # TODO: Replace print() buy message()
   message("Step 3: data formating done.")
 
-  # TODO: If you use all arguments **in order** you can skip all from `=` sign
-  #   e.g. Instead of: `fun(arg11 = arg1, arg2, arg2)`, use: `fun(arg1, arg2)`
   DF <- flag_errors(
     DF,
     site,
@@ -211,18 +190,18 @@ data_preparation <- function(site,
     output_errors = output_errors,
     exclude_interval = exclude_interval
   )
-  # TODO: Replace print() buy message()
-  print("Step 4: errors flagged. Saving corrected data into 'data' folder.")
+  message("Step 4: errors flagged. Saving corrected data into 'data' folder.")
 
   # TODO: Again, Why not output an object rather than write files?
   save(DF, file = paste0(path_folder, "/data/", site, "_formated_data.Rdata"))
   # TODO: No need to rm() objects because they dissapear on exit
   rm(list = setdiff(ls(), c("DF", "path_folder", "SITE", utils::lsf.str())))
+
   # TODO: No need to use return. Simply end with DF.
   #  The modern convension is to reserve return() only for returning early
+  # I believe you want to return DF. That way it's available for future work
+  DF
 }
-
-
 
 
 
@@ -275,31 +254,58 @@ consolidate_data <- function(df, taper_correction, fill_missing, stem) {
     df[, "id" := treeID]
   }
 
-  df[, status1 := check_status(.SD), by = id] # check that the status is consistent over all censuses (e.g. can't be dead and alive at next census)
-  df <- df[!status1 %in% c("P", "Dr")] # discard all priors & replicated dead trees
+  # check that the status is consistent over all censuses (e.g. can't be dead
+  # and alive at next census)
+  df[, status1 := check_status(.SD), by = id]
+  # discard all priors & replicated dead trees
+  df <- df[!status1 %in% c("P", "Dr")]
 
-  # Add average date of census when missing for alive trees (mandatory for interpolating DBHs)
+
+  # Add average date of census when missing for alive trees (mandatory for
+  # interpolating DBHs)
+  # TODO: Try simplify this for clarity and to fit it in a line (80 characters).
+  # e.g., You could write a helper:
+  # round_date <- function(x) {
+  #   formatted_date <- format(as.Date(x, origin = "1960-01-01"), "%Y")
+  #   round(mean(as.numeric(formatted_date), na.rm = TRUE))
+  # }
+  # Then write:
+  # df[ , "year" := round_date(ExactDate), by = CensusID]
   df[, "year" := round(mean(as.numeric(format(as.Date(ExactDate, origin = "1960-1-1"), "%Y")), na.rm = T)), by = CensusID] # Assign 1 year per census
-  if ("quadrat"%in%names(df)) {
-  DATE <- df[,.(date=mean(date,na.rm=T)),by=.(year,quadrat)][order(year)]
-  DATE[,"ID1":=paste(year,quadrat,sep="-")]
-  df$ID <- paste(df$year,df$quadrat,sep="-")
-  df <- within(df,date[is.na(date)] <- DATE$date[match(df[is.na(date),ID],DATE$ID1)])
-  df[,ID:=NULL]
+
+  if ("quadrat" %in% names(df)) {
+    # TODO: It's good style to spell out TRUE and FALSE (instead of T and F)
+    # TODO: You are using `mean(x, na.rm = TRUE)` a lot. Maybe write a little
+    # helpre in utils.R as: mean0 <- function(x) mean(x, na.rm = TRUE)
+    DATE <- df[, .(date = mean(date, na.rm = T)), by = .(year, quadrat)][order(year)]
+    DATE[, "ID1" := paste(year, quadrat, sep = "-")]
+    df$ID <- paste(df$year, df$quadrat, sep = "-")
+    #  TODO: Assignment is a very special operation. It's clearer to have only
+    # one assignment per line. This will also avoid the code form going
+    # beyond the 80 characters that make up a reasonable line.
+    df <- within(df, date[is.na(date)] <- DATE$date[match(df[is.na(date), ID], DATE$ID1)])
+    df[, ID := NULL]
   } else {
-  DATE <- df[,.(date=mean(date,na.rm=T)),by=year][order(year)]
-  df <- within(df, date[is.na(date)] <- DATE$date[match(df[is.na(date), "year"]$year, DATE$year)])
+    DATE <- df[, .(date = mean(date, na.rm = T)), by = year][order(year)]
+    df <- within(df, date[is.na(date)] <- DATE$date[match(df[is.na(date), "year"]$year, DATE$year)])
   }
-  # remove stems without any measurement in any census
+  # TODO: What is the meaning of uppercase? If there is no special meaning, then
+  #   it's best to stick to lowercase.
+  # TODO: It's safest to replace dots "." with underscore "_". Dots are best
+  #   reserved for S3 methods.
+  # Remove stems without any measurement in any census
   NO.MEASURE <- df[, all(is.na(dbh)), by = id]
   df <- df[!id %in% NO.MEASURE$treeID[NO.MEASURE$V1]]
 
   # Taper correction or missing values: -> fill gaps for missing values
-  df[, c("dbh2", "hom2") := correctDBH(.SD, taper_correction = taper_correction, fill_missing = fill_missing), by = id] # might be time consuming (25 minutes for BCI)
+  # might be time consuming (25 minutes for BCI)
+  df[, c("dbh2", "hom2") := correctDBH(.SD, taper_correction = taper_correction, fill_missing = fill_missing), by = id]
   NO.MEASURE <- df[, all(is.na(dbh2)), by = treeID]
-  df <- df[!treeID %in% NO.MEASURE$treeID[NO.MEASURE$V1]] # remove trees without any measurement
-  return(df)
+  # remove trees without any measurement
+  df <- df[!treeID %in% NO.MEASURE$treeID[NO.MEASURE$V1]]
   message("Step 1: data correction done.")
+
+  df
 }
 
 
@@ -326,11 +332,13 @@ consolidate_data <- function(df, taper_correction, fill_missing, stem) {
 #' @noRd
 correctDBH <- function(DT, taper_correction, fill_missing) {
   dbh2 <- DT[status1 == "A", "dbh"][[1]]
-  hom2 <- DT[status1 == "A", round(hom * 100) / 100] # round hom to be at 1.3 meter (avoiding odd rounding)
+  # round hom to be at 1.3 meter (avoiding odd rounding)
+  hom2 <- DT[status1 == "A", round(hom * 100) / 100]
   loc <- which(is.na(dbh2))
   DATE <- DT[status1 == "A", "date"][[1]]
   hom2[is.na(hom2) & !is.na(dbh2)] <- 1.3
 
+  # TODO: Extract this in its own function. It'll make for clearer code.
   # 1. Apply Cushman's correction to trees with POM changed
   if (taper_correction & any(hom2 != 1.3, na.rm = T)) {
     hom2[is.na(hom2)] <- 1.3
@@ -343,26 +351,44 @@ correctDBH <- function(DT, taper_correction, fill_missing) {
     }
   }
 
+  # TODO: Extract this in its own function. It'll make for clearer code.
   # 2. Fill gaps
   if (fill_missing & any(is.na(dbh2))) {
 
     # dead stem
     if (any(grep("D", DT$status1))) {
-      ifelse(length(dbh2) %in% loc, RULE <- 2, RULE <- 1) # if last value is NA, last valid DBH measure is replicated (RULE=2)
-      tryCatch(stats::approx(DATE, dbh2, rule = RULE, xout = DT$date[loc])$y, error = function(e) print(unique(paste("Stem id", DT$id, "generates a problem."))))
+      # if last value is NA, last valid DBH measure is replicated (RULE=2)
+      ifelse(length(dbh2) %in% loc, RULE <- 2, RULE <- 1)
+
+      tryCatch(
+        stats::approx(DATE, dbh2, rule = RULE, xout = DT$date[loc])$y,
+        error = function(e) {
+          # TODO: I replaced print() with message(). Are you sure you want to
+          # only give some information? Consider using warning() or stop().
+          message(unique(paste("Stem id", DT$id, "generates a problem.")))
+        }
+      )
+
       if (any(is.na(stats::approx(DATE, dbh2, rule = RULE, xout = DATE[loc])$y))) {
-        print(DT$id)
+        message(DT$id)
       }
       dbh2[loc] <- stats::approx(DATE, dbh2, rule = RULE, xout = DATE[loc])$y
       hom2[loc] <- stats::approx(DATE, hom2, rule = RULE, xout = DATE[loc])$y
 
       dbh2 <- c(dbh2, NA) # add NA at year of death
       hom2 <- c(hom2, NA)
-    } # end of dead stems
-    else {
+      # end of dead stems
+    } else {
       # alive stems
-      ifelse(length(dbh2) %in% loc, RULE <- 2, RULE <- 1) # if last value is NA, last valid BDBH measure is replicated (RULE=2)
-      tryCatch(stats::approx(DT$date, dbh2, rule = RULE, xout = DT$date[loc])$y, error = function(e) print(paste("Stem id", DT$id, "generates a problem.")))
+      # if last value is NA, last valid BDBH measure is replicated (RULE=2)
+      ifelse(length(dbh2) %in% loc, RULE <- 2, RULE <- 1)
+      tryCatch(
+        stats::approx(DT$date, dbh2, rule = RULE, xout = DT$date[loc])$y,
+        error = function(e) {
+          message(paste("Stem id", DT$id, "generates a problem."))
+        }
+      )
+
       dbh2[loc] <- stats::approx(DT$date, dbh2, rule = RULE, xout = DT$date[loc])$y
       hom2[loc] <- stats::approx(DT$date, hom2, rule = RULE, xout = DT$date[loc])$y
     } # end of alive stems
@@ -373,6 +399,8 @@ correctDBH <- function(DT, taper_correction, fill_missing) {
       dbh2[RESP] <- NA
       hom2[RESP] <- 1.30
     }
+    # TODO: Try to simplify the code so it's not so nested. Too much logic is
+    # difficult to follow, test, and debug. See https://rstd.io/code-smells
   } else { # end of fill_missing
 
     # Replicate dbh & hom if no NA values or fill_missing = `FALSE`
@@ -387,7 +415,8 @@ correctDBH <- function(DT, taper_correction, fill_missing) {
       }
     }
   } # end if fill_missing = F or no missing dbh
-  return(list(dbh2, hom2))
+
+  list(dbh2, hom2)
 }
 
 #' Biomass computation.
@@ -408,17 +437,19 @@ correctDBH <- function(DT, taper_correction, fill_missing) {
 #'   valid for South America.
 #'
 #' @return A data.table (data.frame) with all relevant variables.
+#' @keywords internal
+#' @noRd
 computeAGB <- function(df,
                        use_palm_allometry,
                        DBH = NULL,
                        WD = NULL,
                        H = NULL) {
   if (!exists("DATA_path")) {
+    # TODO: `<<-` is dangerous. Are you sure you need it?
     DATA_path <<- paste0(path_folder, "/data/")
   }
-  ## Allocate wood density
+  # Allocate wood density
   df <- assignWD(df, WD = WD)
-
 
   # Compute biomass
   df <- assignAGB(df, DBH = DBH, H = H)
@@ -428,6 +459,10 @@ computeAGB <- function(df,
     agbPalm <- function(D) {
       exp(-3.3488 + 2.7483 * log(D / 10) + ((0.588)^2) / 2) / 1000
     }
+
+    # TODO: It's unclear what's going on inside if (). Try:
+    # meaningful_name <- complicated-statement-you-need-insidge-if
+    # if (meaningful_name) ...
     if (is.na(match("family", tolower(names(df))))) {
       SP <- LOAD(paste0(DATA_path, list.files(DATA_path)[grep("spptable", list.files(DATA_path))]))
       trim <- function(x) gsub("^\\s+|\\s+$", "", x)
@@ -439,10 +474,13 @@ computeAGB <- function(df,
       df <- merge(df, SP, by = "sp", all.x = T)
       df["Family" == "Arecaceae", "agb" := agbPalm(dbh2)]
     } else {
+      # TODO: It's usualy best to write the shortest condition first.
+      # See https://rstd.io/code-smells
       df["Family" == "Arecaceae", "agb" := agbPalm(dbh2)]
     }
   }
-  return(df)
+
+  df
 }
 
 #' Assign wood density.
@@ -458,25 +496,61 @@ computeAGB <- function(df,
 #'   is implemented.
 #'
 #' @return A data.table (data.frame) with all relevant variables.
+#' @keywords internal
+#' @noRd
 assignWD <- function(DAT, WD = NULL) {
   if (is.null(DATA_path)) {
     DATA_path <<- paste0(path_folder, "/data/")
   }
+
   # Add genus & species to data
   SP <- LOAD(paste(DATA_path, list.files(DATA_path)[grep("spptable", list.files(DATA_path))], sep = "/"))
+  # FIXME: Replace subset() with `[`. See ?subset():
+  # > Warning: This is a convenience function intended for use interactively.
+  # For programming it is better to use the standard subsetting functions like
+  # [, and in particular the non-standard evaluation of argument subset can have
+  # unanticipated consequences.
   SP <- subset(SP, , c("sp", "Genus", "Species", "Family"))
+  # TODO: Remove sep. paste() defaults to `sep = " "`.
   SP$name <- paste(SP$Genus, SP$Species, sep = " ")
 
   if (is.null(WD)) {
     # Import & format CTFS wood data base
-    wsgdatamatch <- which(WSG$site %in% site.info$wsg.site.name[site.info$site == tolower(site)])
+    # TODO: This approach makes code clearer. E.g.:
+    # meaningful_name <- site.info$wsg.site.name[site.info$site == tolower(site)]
+    # wsgdatamatch <- which(WSG %in% meaningful_name)
+    wsgdatamatch <- which(
+      WSG$site %in% site.info$wsg.site.name[site.info$site == tolower(site)]
+    )
+
     if (length(wsgdatamatch) == 0) stop("Site name doesn't match!")
+
     wsg <- unique(WSG[wsgdatamatch, c("genus", "species", "spwood") ])
     names(wsg) <- c("genus", "species", "wd")
     wsg <- wsg[!is.na(wsg$wd), ]
-    A <- invisible(BIOMASS::getWoodDensity(SP$Genus, SP$Species, stand = rep(site, nrow(SP)), family = NULL, addWoodDensityData = wsg))
+    # TODO: Sure you need invisible? What are you trying to accomplish?
+    # Maybe you mean to use suppressMessages() or suppressWarnings()?
+    # TODO: Replace "A" by a more informative name.
+    A <- invisible(
+      BIOMASS::getWoodDensity(
+        SP$Genus,
+        SP$Species,
+        stand = rep(site, nrow(SP)),
+        family = NULL,
+        addWoodDensityData = wsg
+      )
+    )
   } else {
-    A <- invisible(BIOMASS::getWoodDensity(SP$Genus, SP$Species, stand = rep(site, nrow(SP)), family = NULL, region = "World", addWoodDensityData = WD))
+    A <- invisible(
+      BIOMASS::getWoodDensity(
+        SP$Genus,
+        SP$Species,
+        stand = rep(site, nrow(SP)),
+        family = NULL,
+        region = "World",
+        addWoodDensityData = WD
+      )
+    )
   }
 
   # Assign WD by taxon
@@ -489,12 +563,25 @@ assignWD <- function(DAT, WD = NULL) {
   } else {
     DT <- merge(DAT, SP, by = "sp", all.x = T)
   }
+
   # Allocate mean WD to species not in the list
+  # TODO: Extract the message into inform_something() to clarify intention. The
+  # long message obscures what this code does:
+  # if (any(is.na(DT$wsg))) {
+  #  iform_something()
+  #   DT <- within(DT, wsg[is.na(wsg)] <- mean(wsg, na.rm = T))
+  # }
   if (any(is.na(DT$wsg))) {
-    print(paste0("There are ", nrow(DT[is.na(wsg)]), " individuals without WD values. Plot-average value (", round(mean(DT$wsg, na.rm = T), 2), ") was assigned."))
+    message(paste0(
+        "There are ", nrow(DT[is.na(wsg)]),
+        " individuals without WD values. Plot-average value (",
+        round(mean(DT$wsg, na.rm = T), 2), ") was assigned."
+      ))
+
     DT <- within(DT, wsg[is.na(wsg)] <- mean(wsg, na.rm = T))
   }
-  return(DT)
+
+  DT
 }
 
 #' Assign AGB.
@@ -511,8 +598,8 @@ assignWD <- function(DAT, WD = NULL) {
 #'   (optional).
 #'
 #' @return A vector with AGB values (in Mg).
-#'
-#'
+#' @keywords internal
+#' @noRd
 assignAGB <- function(DAT, DBH = NULL, H = NULL) {
   if (!is.null(DBH)) {
     D <- DAT[, get(DBH)]
@@ -520,29 +607,43 @@ assignAGB <- function(DAT, DBH = NULL, H = NULL) {
     D <- DAT$dbh2
   }
   if (!any(grepl("wsg", names(DAT)))) {
-    stop("you must assign WD first through assignWD()")
+    stop("you must assign WD first through assignWD()", call. = FALSE)
   }
   if (!is.null(H)) {
     H <- df[, ..height]
+
     if (length(D) != length(H)) {
-      stop("H and D have different length, or column 'height' not provided")
+      stop(
+        "H and D have different length, or column 'height' not provided",
+        call. = FALSE
+      )
     }
+
     if (any(is.na(D))) {
-      warning("NA values in D")
+      warning("NA values in D", call. = FALSE)
     }
+
     DAT$agb <- (0.0673 * (DAT$wsg * H * (D / 10)^2)^0.976) / 1000
-  }
-  else {
+  } else {
     INDEX <- match(tolower(site), site.info$site)
     if (is.na(INDEX)) {
-      stop("Site name should be one of the following: \n", paste(levels(factor(site.info$site)), collapse = " - "))
+      # TODO: You are using `paste(levels(factor(site.info$site))` in three
+      # places. You may wrap it in a helper: `collapse_levels("site")`
+      stop(
+        "Site name should be one of the following: \n",
+        paste(levels(factor(site.info$site)), collapse = " - "), call. = FALSE
+      )
     }
     E <- site.info$E[INDEX]
+    # TODO: Clarify the meaning of these numbers by storing them in a
+    # meaningfully named variable or function:
+    # DAT$agb <- well_named_funciton(DAT$wsg, E, D)
     DAT$agb <- exp(-2.023977 - 0.89563505 * E + 0.92023559 *
       log(DAT$wsg) + 2.79495823 * log(D / 10) - 0.04606298 *
       (log(D / 10)^2)) / 1000
   }
-  return(DAT)
+
+  DAT
 }
 
 #' Format census intervals.
@@ -557,8 +658,8 @@ assignAGB <- function(DAT, DBH = NULL, H = NULL) {
 #'   default = 500.
 #'
 #' @return A formated data.table.
-#'
-#'
+#' @keywords internal
+#' @noRd
 format_interval <- function(df,
                             flag_stranglers,
                             dbh_stranglers,
@@ -566,10 +667,22 @@ format_interval <- function(df,
   YEAR <- unique(df$year)
 
   # Receiveing data set
-  DF2 <- data.table::setDT(data.frame("treeID" = NA, "dbh1" = NA, "dbhc1" = NA, "status1" = NA, "code1" = NA, "hom1" = NA, "sp" = NA, "wsg" = NA, "agb1" = NA, "date1" = NA, "dbh2" = NA, "dbhc2" = NA, "status2" = NA, "code2" = NA, "hom2" = NA, "agb2" = NA, "date2" = NA, "broken" = NA, "agbl" = NA, "agb1.surv" = NA, "interval" = NA, "year" = NA))
+  nms <- c(
+    "treeID", "dbh1", "dbhc1",  "status1", "code1",  "hom1",  "sp", "wsg",
+    "agb1", "date1",  "dbh2",  "dbhc2", "status2",  "code2", "hom2", "agb2",
+    "date2",  "broken",  "agbl",  "agb1.surv", "interval", "year"
+  )
+  # FIXME: Growing an object can be terribly slow. Instead of creating a
+  # dataframe with one row you should create a dataframe with as many rows as
+  # you need.
+  DF2 <- data.table::setDT(receiving_df(nms))
 
-  for (j in 1:(length(YEAR) - 1)) { # 4 minutes to run
-    i1 <- df[year == YEAR[j] & status1 != "D", .I[which.max(dbh2)], by = treeID] # keep only information for the biggest alive stem per treeID
+  # 4 minutes to run
+  for (j in 1:(length(YEAR) - 1)) {
+    # keep only information for the biggest alive stem per treeID
+    i1 <- df[year == YEAR[j] & status1 != "D", .I[which.max(dbh2)], by = treeID]
+    # TODO: Clarify the meaning of these strings by storing them in a
+    # meaningfully named variable.
     A1 <- df[i1$V1, c("treeID", "dbh", "dbh2", "status1", "codes", "hom", "agb", "id", "sp", "wsg")]
     names(A1) <- c("treeID", "dbh1", "dbhc1", "status1", "code1", "hom1", "agb", "id1", "sp", "wsg")
     B1 <- df[year == YEAR[j] & status1 != "D", list("agb1" = sum(agb, na.rm = T), "date1" = mean(date, na.rm = T)), by = treeID]
@@ -637,9 +750,12 @@ format_interval <- function(df,
   DF2[, "nrow" := NULL]
 
   # Compute annualized fluxes
-  DF2[code %in% c("A", "AC", "B"), prod.g := (agb2 - agb1) / int, by = treeID] # annual prod for alive trees & multi-stems
-  DF2[code == "B", prod.g := (agb2 - agb1.surv) / int, by = treeID] # annual prod for alive trees & multi-stems
-  DF2[code %in% c("R", "Rsp"), prod.r := agb2 / int, by = treeID] # annual prod for resprouts and recruits
+  # annual prod for alive trees & multi-stems
+  DF2[code %in% c("A", "AC", "B"), prod.g := (agb2 - agb1) / int, by = treeID]
+  # annual prod for alive trees & multi-stems
+  DF2[code == "B", prod.g := (agb2 - agb1.surv) / int, by = treeID]
+  # annual prod for resprouts and recruits
+  DF2[code %in% c("R", "Rsp"), prod.r := agb2 / int, by = treeID]
   DF2[code == "D", agbl := agb1, by = treeID]
   DF2[, loss := agbl / int, by = treeID] # annualized loss for dead trees
 
@@ -653,7 +769,8 @@ format_interval <- function(df,
     }
     DF2 <- within(DF2, ficus[!is.na(FIC) & dbhc1 > dbh_stranglers] <- 1)
   }
-  return(DF2)
+
+  DF2
 }
 
 #' Flag major errors.
@@ -679,8 +796,8 @@ format_interval <- function(df,
 #'   in  protocol of measurment.
 #'
 #' @return A data.table (data.frame) with all relevant variables.
-#'
-#'
+#' @keywords internal
+#' @noRd
 flag_errors <- function(DF,
                         site,
                         flag_stranglers,
@@ -689,7 +806,8 @@ flag_errors <- function(DF,
                         exclude_interval) {
   mean.prod <- determine_mean_prod(DF, site, flag_stranglers, exclude_interval)
   DF[, prod.rel := as.numeric(NA), ]
-  DF[, prod.rel := prod.g / mean.prod] # relative contribution to average total productivity
+  # relative contribution to average total productivity
+  DF[, prod.rel := prod.g / mean.prod]
   DF[, error := 0]
   DF <- within(DF, error[prod.rel > maxrel & dHOM == 0 & code != "D"] <- 1)
   DF <- within(DF, error[prod.rel < (-maxrel) & dHOM == 0 & code != "D"] <- -1)
@@ -699,13 +817,23 @@ flag_errors <- function(DF,
   POSI2 <- DF[POSI, .I[error == 0 & dHOM == 0 & code == "D"], ]
   DF[, error.loss := 0]
   DF <- within(DF, error.loss[POSI[POSI2]] <- 1) # flag consecutive census
+
   if (flag_stranglers) {
-    DF <- within(DF, error.loss[ficus == 1 & code == "D"] <- 1) # flag dead strangler figs
+    # flag dead strangler figs
+    DF <- within(DF, error.loss[ficus == 1 & code == "D"] <- 1)
   }
   # ID <- DF[error!=0 & !code%in%c("D","R"),nrow(.SD)>=1,by=treeID]
   # ID <- ID[V1==T,treeID]
   ID <- unique(DF[error != 0, treeID])
-  A <- utils::menu(c("Y", "N"), title = paste("There are",length(ID), "trees with errors. Do you want to print",round(length(ID)/15),"pages?"))
+  A <- utils::menu(
+    c("Y", "N"),
+    title = paste(
+      "There are",length(ID),
+      "trees with errors. Do you want to print",
+      round(length(ID)/15),"pages?"
+    )
+  )
+
   ifelse(A == 1, graph_problem_trees <- T, graph_problem_trees <- F)
 
   if (graph_problem_trees) { # Plot trees with large major error
@@ -713,6 +841,10 @@ flag_errors <- function(DF,
     CX <- 2
     a <- 0
     i <- 0
+
+    # TODO: Growing an object can be terribly slow. Instead you should create
+    # an object with the structure that you need (rows, columns, list elements,
+    # etc.)
     GRAPH <- list()
 
     for (n in 1:length(ID)) {
@@ -731,12 +863,52 @@ flag_errors <- function(DF,
       Y$point <- 0
       Y$point[Y$error != 0] <- 1
 
-      GRAPH[[i]] <- ggplot2::ggplot(X, aes(x = y1, y = dbhc1)) + geom_point(size = 2) + geom_segment(data = Y, aes(x = y1, y = dbhc1, xend = year, yend = dbhc2, linetype = as.factor(line))) + geom_point(data = X[point == 1], aes(x = year, y = dbhc2), col = 2) + labs(title = paste0(unique(X$name), " (", ID[n], ")"), x = " ", y = "dbh (mm)") + geom_text(data = Y, aes(x = y1, y = dbh1 - (0.05 * dbh1)), label = round(Y$hom1, 2), cex = CX) + geom_text(data = YY, aes(x = year, y = d02 - (0.05 * d02)), label = round(YY$hom2, 2), cex = CX) + geom_text(data = Y, aes(x = year, y = 0.3 * max(dbhc2)), label = Y$dbh1, cex = CX, angle = 90, vjust = 1) + geom_text(data = YY, aes(x = year, y = 0.3 * max(d2)), label = YY$d02, cex = CX, angle = 90, vjust = 1) + theme(plot.title = element_text(size = 5 * CX, face = "bold"), axis.title.y = element_text(size = 5 * CX, , face = "bold"), axis.text.y = element_text(size = 4 * CX), axis.text.x = element_text(size = 4 * CX, vjust = 0, angle = 30), panel.background = element_blank(), strip.text = element_text(size = 4 * CX, face = "bold"), strip.background = element_rect("lightgrey"), panel.spacing = unit(0.1, "lines")) + scale_linetype_manual(values = c("0" = "dashed", "1" = "solid")) + guides(linetype = F, colour = F) + scale_x_continuous(limits = c(min(as.numeric(YEAR)) - 3, max(as.numeric(YEAR)) + 3), breaks = as.numeric(YEAR)) + scale_y_continuous(limits = c(0.2 * max(YY$d2), max(X$dbhc2, X$dbhc1)))
-
+      GRAPH[[i]] <- ggplot2::ggplot(X, aes(x = y1, y = dbhc1)) +
+        geom_point(size = 2) +
+        geom_segment(data = Y,
+          aes(x = y1, y = dbhc1, xend = year, yend = dbhc2, linetype = as.factor(line))
+        ) +
+        geom_point(data = X[point == 1], aes(x = year, y = dbhc2), col = 2) +
+        labs(title = paste0(unique(X$name), " (", ID[n], ")"), x = " ", y = "dbh (mm)") +
+        geom_text(data = Y,
+          aes(x = y1, y = dbh1 - (0.05 * dbh1)), label = round(Y$hom1, 2), cex = CX
+        ) +
+        geom_text(data = YY,
+          aes(x = year, y = d02 - (0.05 * d02)), label = round(YY$hom2, 2), cex = CX) +
+        geom_text(data = Y,
+          aes(x = year, y = 0.3 * max(dbhc2)), label = Y$dbh1, cex = CX,
+          angle = 90, vjust = 1
+        ) +
+        geom_text(data = YY,
+          aes(x = year, y = 0.3 * max(d2)),
+          label = YY$d02, cex = CX, angle = 90, vjust = 1
+        ) +
+        theme(
+          plot.title = element_text(size = 5 * CX, face = "bold"),
+          axis.title.y = element_text(size = 5 * CX, , face = "bold"),
+          axis.text.y = element_text(size = 4 * CX),
+          axis.text.x = element_text(size = 4 * CX, vjust = 0, angle = 30),
+          panel.background = element_blank(),
+          strip.text = element_text(size = 4 * CX, face = "bold"),
+          strip.background = element_rect("lightgrey"),
+          panel.spacing = unit(0.1, "lines")
+        ) +
+        scale_linetype_manual(values = c("0" = "dashed", "1" = "solid")) +
+        guides(linetype = F, colour = F) +
+        scale_x_continuous(
+          limits = c(min(as.numeric(YEAR)) - 3, max(as.numeric(YEAR)) + 3),
+          breaks = as.numeric(YEAR)
+        ) +
+        scale_y_continuous(limits = c(0.2 * max(YY$d2), max(X$dbhc2, X$dbhc1)))
 
       if (i %% 15 == 0) { ## print 15 plots per page
         a <- a + 1
-        ggplot2::ggsave(do.call(gridExtra::grid.arrange, GRAPH), file = paste0(path_folder, "/output/trees_with_major_errors_", a, ".pdf"), width = 29.7, height = 20.1, units = "cm")
+        ggplot2::ggsave(
+          do.call(gridExtra::grid.arrange, GRAPH),
+          file = paste0(path_folder, "/output/trees_with_major_errors_", a, ".pdf"),
+          width = 29.7, height = 20.1, units = "cm"
+        )
+
         GRAPH <- list() # reset plot
         i <- 0 # reset index
       }
@@ -744,12 +916,28 @@ flag_errors <- function(DF,
   } # end of graph
 
   if (length(ID) == 0) {
-    print(paste0("No tree productivity above", maxrel, "% or below", -maxrel, "% of mean productivity at your plot. You may eventually want to try a lower threshold."))
+    message(
+      paste0(
+        "No tree productivity above", maxrel, "% or below", -maxrel,
+        "% of mean productivity at your plot. You may eventually want to try a lower threshold."
+      )
+    )
   }
+
   if (output_errors & length(ID) > 0) {
-    utils::write.csv(DF[treeID %in% ID], file = paste0(path_folder, "/output/trees_with_major_errors.csv"))
+    utils::write.csv(
+      DF[treeID %in% ID],
+      file = paste0(path_folder, "/output/trees_with_major_errors.csv")
+    )
   }
-  return(DF)
+
+  # TODO: Functions should generally either return a plot or an object (e.g. DF)
+  # You may need to brake down this function in two pieces, e.g. flag_errors(),
+  # which computes something and returns DF, and plot_flags(), which plots DF.
+  # You can create a class "flags" and write an S3 method for plot() -- i.e.
+  # plot.flags() -- so you get the plot with `plot(flag_errors())`.
+
+  DF
 } # end of major.error
 
 #' Set mean productivity.
@@ -767,11 +955,13 @@ flag_errors <- function(DF,
 #'   in  protocol of measurment.
 #'
 #' @return Mean productivity in Mg/ha/yr.
-#'
-#'
+#' @keywords internal
+#' @noRd
 determine_mean_prod <- function(DF, site, flag_stranglers, exclude_interval) {
   AREA <- site.info$size[match(site, site.info$site)]
   if (missing(exclude_interval)) {
+    # TODO: Clarify what's going on here. You may need to extract functions and
+    # write variables with meaningful names.
     ifelse(flag_stranglers,
       PRODA <- data.table::setDT(DF)[ficus != 1, .(prod = rec_flux(sum(agb1, na.rm = T), sum(agb2[code != "D"], na.rm = T), sum(agb1[code %in% c("A", "AC")], na.rm = T), AREA, mean(int, na.rm = T))), by = interval],
       PRODA <- data.table::setDT(DF)[, .(prod = rec_flux(sum(agb1, na.rm = T), sum(agb2[code != "D"], na.rm = T), sum(agb1[code %in% c("A", "AC")], na.rm = T), AREA, mean(int, na.rm = T))), by = interval]
@@ -782,8 +972,11 @@ determine_mean_prod <- function(DF, site, flag_stranglers, exclude_interval) {
       PRODA <- data.table::setDT(DF)[!interval %in% c(exclude_interval), .(prod = rec_flux(sum(agb1, na.rm = T), sum(agb2[code != "D"], na.rm = T), sum(agb1[code %in% c("A", "AC")], na.rm = T), AREA, mean(int, na.rm = T))), by = interval]
     )
   }
-  mPROD <- mean((PRODA$prod))
-  return(mPROD)
+
+  # TODO: Confirma that you don't need `na.rm = TRUE`
+  mPROD <- mean(PRODA$prod)
+
+  mPROD
 }
 
 #' Loess.
@@ -797,17 +990,17 @@ determine_mean_prod <- function(DF, site, flag_stranglers, exclude_interval) {
 #'   95th percentiles of the whole distribution).
 #'
 #' @return A smoothed prediction of the variable of interest.
-#'
-#'
+#' @keywords internal
+#' @noRd
 loess.fun <- function(x, var, range, weights = NULL) {
   if (is.null(weights)) {
     fit <- locfit(var ~ lAGB, data = x)
-  }
-  else {
+  } else {
     fit <- locfit(var ~ lAGB, data = x, weights = weights)
   }
+
   pred <- stats::predict(fit, newdata = list(lAGB = range))
-  return(data.frame(lAGB = range, y = as.numeric(pred)))
+  data.frame(lAGB = range, y = as.numeric(pred))
 }
 
 # loess.fun <- function(x,var)  {
@@ -826,15 +1019,20 @@ loess.fun <- function(x, var, range, weights = NULL) {
 #'
 #' @return A data.table (data.frame) with a new colum "status1" where values can
 #'   be "P"(prior),"A"(alive),"D"(dead) and "Dr"(dead replicated).
-#'
-#'
+#' @keywords internal
+#' @noRd
 check_status <- function(DT) {
+  # TODO: These is too deeply nested and prone to error. Consider using
+  # switch(), dplyr::case_when, extracting functions, etc.
+  # See https://rstd.io/code-smells
   if (!"status" %in% names(DT)) {
     DT$status <- NA
     DT$status[DT$DFstatus == "alive"] <- "A"
     DT$status[DT$DFstatus == "dead"] <- "D"
   }
+
   STAT <- rep("A", nrow(DT))
+
   if (all(is.na(DT$dbh))) {
     STAT <- rep("Dr", nrow(DT))
   } else if (any(is.na(DT$dbh)) | any(grep("\\bD\\b", DT$status))) { # look for dbh=NA or dead (D) status
@@ -851,8 +1049,22 @@ check_status <- function(DT) {
       } # Dead replicated (to be discarded)
     } # end of loca>0
   }
-  return(STAT)
+
+  STAT
 }
+
+
+# FIXME: LOAD() does not load objects in the global environment. It loads them
+# into an environment, `env`, created inside your funciton. In any case, I think
+# you should not need to load anything -- instead your fuctions should get the
+# data they need via arguments. The user can pass datasests in a list. And you
+# could write a helper to load from a directory into a list. The outcome is the
+# same but your functions become more focused, easier to build and to
+# understand. These are all different environments:
+# * Global environment.
+# * Functions environment.
+# * Package environment (or namespace).
+# You don't need to get into this trouble.
 
 #' Load object.
 #'
@@ -861,8 +1073,8 @@ check_status <- function(DT) {
 #' @param saveFile The path to the object to be loaded.
 #'
 #' @return Import the object.
-#'
-#'
+#' @keywords internal
+#' @noRd
 LOAD <- function(saveFile) {
   env <- new.env()
   load(saveFile, envir = env)
@@ -870,6 +1082,15 @@ LOAD <- function(saveFile) {
   stopifnot(length(loadedObjects) == 1)
   env[[loadedObjects]]
 }
+
+
+
+# # FIXME: Can we remove this?
+# # # Debug
+# DT <- DF2[treeID==391]
+# DT <- DF2[treeID== 230867 ][order(year)]
+# DT <- DF2[treeID==5637]
+# assign_status(DT)
 
 #' Assign status.
 #'
@@ -880,22 +1101,18 @@ LOAD <- function(saveFile) {
 #' @param DF A data.table.
 #'
 #' @return Update the column 'status1' with consistent information.
-#'
-#'
-# # FIXME: Can we remove this?
-# # # Debug
-# DT <- DF2[treeID==391]
-# DT <- DF2[treeID== 230867 ][order(year)]
-# DT <- DF2[treeID==5637]
-# assign_status(DT)
+#' @keywords internal
+#' @noRd
 assign_status <- function(DT) {
   code <- rep("A", nrow(DT))
   agbl <- DT$agbl
   code[code == "A" & is.na(DT$dbhc1) & DT$status1 == "P"] <- "R"
   code[code == "A" & DT$broken == 1] <- "B" # Broken
   code[code == "A" & DT$code2 == "R"] <- "Rsp" #
-  code[code == "A" & is.na(DT$status1) & !is.na(DT$status2)] <- "Rsp" # resprouted trees poses a problem only the first year, are alive/dead after
-  code[code == "A" & grep("MAIN", DT$code1) & grep("SPROUT", DT$code2)] <- "Rsp" # resprouted trees poses a problem only the first year, are alive/dead after
+  # resprouted trees poses a problem only the first year, are alive/dead after
+  code[code == "A" & is.na(DT$status1) & !is.na(DT$status2)] <- "Rsp"
+  # resprouted trees poses a problem only the first year, are alive/dead after
+  code[code == "A" & grep("MAIN", DT$code1) & grep("SPROUT", DT$code2)] <- "Rsp"
   if (utils::tail(DT$status2, 1) == "D") {
     code[length(code)] <- "D"
   }
@@ -909,8 +1126,10 @@ assign_status <- function(DT) {
   }
   dHOM <- DT$hom2 - DT$hom1
   dHOM[is.na(dHOM)] <- 0
-  code[code == "A" & dHOM != 0] <- "AC" # trees with POM changed are not accounted for in productivity
-  return(list(agbl, code, dHOM))
+  # trees with POM changed are not accounted for in productivity
+  code[code == "A" & dHOM != 0] <- "AC"
+
+  list(agbl, code, dHOM)
 }
 
 
@@ -935,7 +1154,6 @@ assign_status <- function(DT) {
 
 
 
-
 #' Create quadrats.
 #'
 #' Create a grid where all trees are allocated to a given quadrat of size (=
@@ -949,14 +1167,17 @@ assign_status <- function(DT) {
 #'
 #' @return Add three columns to the data.frame: quadrat's number, centroids X
 #'   and Y.
-#'
-#'
+#' @keywords internal
+#' @noRd
 create_quad <- function(census, grid_size, x = "gx", y = "gy", fit.in.plot) {
   X <- census[, grep(x, names(census)), with = F][[1]]
   Y <- census[, grep(y, names(census)), with = F][[1]]
 
   if (any(is.na(X)) | any(is.na(Y))) {
-    warning(paste(length(X[is.na(X)]), " trees without coordinates were discarded."))
+    warning(
+      paste(length(X[is.na(X)]), " trees without coordinates were discarded."),
+      call. = FALSE
+    )
     census <- census[!is.na(X) & !is.na(Y)]
     X <- census[, grep(x, names(census)), with = F][[1]]
     Y <- census[, grep(y, names(census)), with = F][[1]]
@@ -984,20 +1205,30 @@ create_quad <- function(census, grid_size, x = "gx", y = "gy", fit.in.plot) {
 
   # for now, only allow grid sizes that fit neatly
   if (max(x1, na.rm = T) > maxx | min(x1, na.rm = T) < 0 | max(y1, na.rm = T) > maxy | min(y1, na.rm = T) < 0) {
-    stop("Some trees are outside the plot boundaries. Consider fit.in.plot=T")
+    stop(
+      "Some trees are outside the plot boundaries. Consider fit.in.plot=T",
+      call. = FALSE
+    )
   }
   if (round(w_grid) != w_grid | round(h_grid) != h_grid) {
-    stop("Plot width and height must be divisible by grid_size")
+    stop("Plot width and height must be divisible by grid_size", call. = FALSE)
   }
 
   census$quad <- (ceiling((maxy - miny) / grid_size)) * (floor((x1 - minx) / grid_size)) + (floor((y1 - miny) / grid_size) + 1) ## identifiant de cellule unique 1->100 en partant de 0,0
   if (max(census$quad, na.rm = T) != n_quadrat) {
-    stop(paste("Quadrat numbering error: expected ", n_quadrat, " quadrats; got ", max(census$quad, na.rm = T), sep = ""))
+    # TODO: stop() pastes stuff. So you can avoid paste(). Also, see paste0()
+    # which defaults to `sep = ""`.
+    stop(
+      paste(
+        "Quadrat numbering error: expected ", n_quadrat, " quadrats; got ",
+        max(census$quad, na.rm = T), sep = "")
+      )
   }
   census$centroX <- (floor(x1 / grid_size) * grid_size) + (grid_size / 2)
   census$centroY <- (floor(y1 / grid_size) * grid_size) + (grid_size / 2)
   # census[,.(max(gx)-min(gx),max(gy)-min(gy)),by=quad]
-  return(census)
+
+  census
 }
 
 #' Compute unbiased recruitment flux and loss flux.
@@ -1011,20 +1242,25 @@ create_quad <- function(census, grid_size, x = "gx", y = "gy", fit.in.plot) {
 #' @param time Cenusus interval in year.
 #'
 #' @return Absolute recruitment flux in % per year.
-#'
-#'
+#' @keywords internal
+#' @noRd
 rec_flux <- function(A0, A1, S1, area, time) {
   rec <- log(A1 / S1) * (A1 - A0) / (area * time * log(A1 / A0))
   ifelse(rec == Inf, 0, rec)
-  return(rec)
+
+  rec
 }
 
 #' @rdname rec_flux
-
+#' @keywords internal
+#' @noRd
 loss_flux <- function(A0, A1, S1, area, time) {
   LO <- (log(A0 / S1) / log(A1 / A0)) * ((A1 - A0) / (area * time))
+  # FIXME: This line achieves nothing unless you assign it to `LO`. It sholud be:
+  # LO <- ifelse(LO == Inf, 0, LO)
   ifelse(LO == Inf, 0, LO)
-  return(LO)
+
+  LO
 }
 
 trim_growth <- function(cens,
@@ -1048,5 +1284,6 @@ trim_growth <- function(cens,
 
   accept[is.na(cens$dbhc1) | is.na(cens$dbhc2) | cens$dbhc2 <= 0] <- FALSE
   growth[!accept] <- NA
-  return(growth)
+
+  growth
 }
