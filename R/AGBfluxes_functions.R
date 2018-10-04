@@ -454,10 +454,6 @@ computeAGB <- function(df,
 #'   is implemented.
 #'
 #' @return A data.table (data.frame) with all relevant variables.
-#' @imports BIOMASS  # how do I force the usage of this package (mandatory for this funtion to work)
-#'
-
-
 assignWD <- function(DAT, WD = NULL) {
   if (is.null(DATA_path)) {
     DATA_path <<- paste0(path_folder, "/data/")

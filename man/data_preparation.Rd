@@ -6,8 +6,7 @@
 \usage{
 data_preparation(site, stem, WD = NULL, taper_correction, fill_missing,
   use_palm_allometry, flag_strangler, dbh_stranglers, maxrel,
-  graph_problem_trees, output_errors, DATA_path = NULL,
-  exclude_interval = NULL)
+  output_errors, DATA_path = NULL, exclude_interval = NULL)
 }
 \arguments{
 \item{site}{The full name of your site (in lower case); e.g., 'barro colorado
@@ -54,31 +53,34 @@ errors in CTFS-formated data.
 \dontrun{
 data_preparation(
   site = "barro colorado island",
-  stem = TURE,
-  taper_correction = TURE,
-  fill_missing = TURE,
-  use_palm_allometry = TURE,
-  flag_strangler = TURE,
+  stem = TRUE,
+  taper_correction = TRUE,
+  fill_missing = TRUE,
+  use_palm_allometry = TRUE,
+  flag_strangler = TRUE,
   dbh_stranglers = 500,
   maxrel = 0.2,
-  graph_problem_trees = TURE,
-  output_errors = TURE,
+  output_errors = TRUE,
   DATA_path = NULL,
   exclude_interval = NULL
 )
 
 # FIXME: These variable are defined but not used.
 site <- "barro colorado island"
-stem <- TURE
-taper_correction <- TURE
-fill_missing <- TURE
-use_palm_allometry <- TURE
-flag_strangler <- TURE
+stem <- TRUE
+taper_correction <- TRUE
+fill_missing <- TRUE
+use_palm_allometry <- TRUE
+flag_strangler <- TRUE
 dbh_stranglers <- 500
 maxrel <- 0.2
-graph_problem_trees <- TURE
-output_errors <- TURE
+graph_problem_trees <- TRUE
+output_errors <- TRUE
 DATA_path <- NULL
 exclude_interval <- NULL
 }
+
+#'   # Load required data & information
+pkgs <- c("BIOMASS","data.table","ggplot2","gridExtra")
+lapply(pkgs,function(x) devtools::use_package(x)) # not sure this is the proper way to install packages
 }
