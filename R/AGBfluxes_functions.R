@@ -101,7 +101,6 @@ data_preparation <- function(site,
   #   load(paste0(getwd(),"/data/",file_names[i]))
   # }
   ## For sake of simplicity, we point toward the data stored in "data" folder (see above for automation)
-<<<<<<< HEAD
   site <- tolower(site)
   INDEX <- match(tolower(site), site.info$site)
   # TODO: Add this and many more checks in a new check_data_preparation()
@@ -109,8 +108,7 @@ data_preparation <- function(site,
   if (is.na(INDEX)) {
     stop("Site name should be one of the following: \n", paste(levels(factor(site.info$site)), collapse = " - "))
   }
-=======
->>>>>>> 7e2815a936a75df949169ccd58c280e6ec9e6217
+
   DATA_path <- paste0(getwd(), "/data/")
   path_folder <- getwd()
   files <- list.files(DATA_path)
