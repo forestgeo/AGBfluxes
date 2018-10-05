@@ -1,4 +1,4 @@
-#' TODO: What is this dataset?
+#' df is a concatenation of the 3 mini-data-sets "bci-stem_YEAR". It avoids going through lines 
 #'
 #' @examples
 #' str(df)
