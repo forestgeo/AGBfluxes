@@ -1,4 +1,7 @@
-#' df is a concatenation of the 3 mini-data-sets "bci-stem_YEAR". It avoids going through lines 
+#' A concatenation of 3 mini "bci-stem_YEAR" datasets.
+#'
+#' `df` concatenates the 3 mini "bci-stem_YEAR" datasets. It avoids going
+#' through lines.
 #'
 #' @examples
 #' str(df)

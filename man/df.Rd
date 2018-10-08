@@ -3,13 +3,14 @@
 \docType{data}
 \name{df}
 \alias{df}
-\title{TODO: What is this dataset?}
+\title{A concatenation of 3 mini "bci-stem_YEAR" datasets.}
 \format{An object of class \code{data.table} (inherits from \code{data.frame}) with 645 rows and 38 columns.}
 \usage{
 df
 }
 \description{
-TODO: What is this dataset?
+\code{df} concatenates the 3 mini "bci-stem_YEAR" datasets. It avoids going
+through lines.
 }
 \examples{
 str(df)
