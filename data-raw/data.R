@@ -17,5 +17,11 @@ use_data(
   overwrite = TRUE
 )
 
+# Store WD data from the BIOMASS pkg
+usethis::use_data(
+  wdData,
+  sd_10,
+  overwrite=T
+)
 # DF was in "barro colorado island_formated_data.Rdata" stored in data/.
-use_data(df, overwrite = TRUE)
+usethis::use_data(df, overwrite = TRUE)

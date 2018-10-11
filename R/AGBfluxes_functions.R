@@ -37,7 +37,7 @@
 #'   taper_correction = TRUE,
 #'   fill_missing = TRUE,
 #'   use_palm_allometry = TRUE,
-#'   flag_strangler = TRUE,
+#'   flag_stranglers = TRUE,
 #'   dbh_stranglers = 500,
 #'   maxrel = 0.2,
 #'   output_errors = TRUE,
@@ -51,7 +51,7 @@ data_preparation <- function(site,
                              taper_correction,
                              fill_missing,
                              use_palm_allometry,
-                             flag_strangler,
+                             flag_stranglers,
                              dbh_stranglers,
                              maxrel,
                              output_errors,
@@ -67,12 +67,12 @@ data_preparation <- function(site,
   # if (is.na(INDEX)) {
   #   stop("Site name should be one of the following: \n", paste(levels(factor(site.info$site)), collapse = " - "))
   # }
-  # # TODO: Remove this if (): Make `DATA_path` the first argument with no default
-  # if (is.null(DATA_path)) {
-  #   path_folder <- getwd()
-  #   # TODO: Is the double assignment intentional? (i.e`<<-` instead of `<-`)
-  #   DATA_path <<- paste0(path_folder, "/data/")
-  # }
+  # TODO: Remove this if (): Make `DATA_path` the first argument with no default
+  if (is.null(DATA_path)) {
+    path_folder <- getwd()
+    # TODO: Is the double assignment intentional? (i.e`<<-` instead of `<-`)
+    DATA_path <<- paste0(path_folder, "/data/")
+  }
   # # TODO: Replace `DATA_path` by `.data`: A list of datasets.
   # # TODO: Write a helper that creates the list of datasets given a path.
   # file_names <- list.files(paste0(getwd(),"/data/"))
@@ -175,12 +175,12 @@ data_preparation <- function(site,
   # TODO: Reorder to match formals:
   #   df, use_palm_allometry, DBH = NULL, WD = NULL, H = NULL
   # FIXME: This fails because WD can't be found.
-  df <- computeAGB(df, WD = WD, H = NULL, use_palm_allometry)
+  df <- computeAGB(df, WD = WD, H = NULL, site=site,use_palm_allometry)
 
-  message("Step 2: AGB calculation done.")
+  message("Step 3: AGB calculation done.")
 
   DF <- format_interval(df, flag_stranglers, dbh_stranglers)
-  message("Step 3: data formating done.")
+  message("Step 4: Formating intervals done.")
 
   DF <- flag_errors(
     DF,
@@ -190,17 +190,12 @@ data_preparation <- function(site,
     output_errors = output_errors,
     exclude_interval = exclude_interval
   )
-  message("Step 4: errors flagged. Saving corrected data into 'data' folder.")
+  message("Step 5: Errors flagged. Saving formated data into 'data' folder.")
 
   # TODO: Again, Why not output an object rather than write files?
-  save(DF, file = paste0(path_folder, "/data/", site, "_formated_data.Rdata"))
-  # TODO: No need to rm() objects because they dissapear on exit
-  rm(list = setdiff(ls(), c("DF", "path_folder", "SITE", utils::lsf.str())))
+  save(DF, file = paste0(getwd(), "/data/", site, "_formated_data.Rdata"))
 
-  # TODO: No need to use return. Simply end with DF.
-  #  The modern convension is to reserve return() only for returning early
-  # I believe you want to return DF. That way it's available for future work
-  DF
+  DF[order(year,treeID)]
 }
 
 
@@ -303,7 +298,7 @@ consolidate_data <- function(df, taper_correction, fill_missing, stem) {
   NO.MEASURE <- df[, all(is.na(dbh2)), by = treeID]
   # remove trees without any measurement
   df <- df[!treeID %in% NO.MEASURE$treeID[NO.MEASURE$V1]]
-  message("Step 1: data correction done.")
+  message("Step 2: Data consolidation done.")
 
   df
 }
@@ -443,16 +438,17 @@ computeAGB <- function(df,
                        use_palm_allometry,
                        DBH = NULL,
                        WD = NULL,
-                       H = NULL) {
+                       H = NULL,
+                       site) {
   if (!exists("DATA_path")) {
     # TODO: `<<-` is dangerous. Are you sure you need it?
     DATA_path <<- paste0(path_folder, "/data/")
   }
   # Allocate wood density
-  df <- assignWD(df, WD = WD)
+  df <- assignWD(df, site=site, WD=WD)
 
   # Compute biomass
-  df <- assignAGB(df, DBH = DBH, H = H)
+  df <- assignAGB(df, site=site, DBH = DBH, H = H)
 
   # Compute biomass for palms
   if (use_palm_allometry) {
@@ -498,7 +494,7 @@ computeAGB <- function(df,
 #' @return A data.table (data.frame) with all relevant variables.
 #' @keywords internal
 #' @noRd
-assignWD <- function(DAT, WD = NULL) {
+assignWD <- function(DAT, site, WD = NULL) {
   if (is.null(DATA_path)) {
     DATA_path <<- paste0(path_folder, "/data/")
   }
@@ -600,7 +596,7 @@ assignWD <- function(DAT, WD = NULL) {
 #' @return A vector with AGB values (in Mg).
 #' @keywords internal
 #' @noRd
-assignAGB <- function(DAT, DBH = NULL, H = NULL) {
+assignAGB <- function(DAT, site, DBH = NULL, H = NULL) {
   if (!is.null(DBH)) {
     D <- DAT[, get(DBH)]
   } else {
@@ -905,7 +901,7 @@ flag_errors <- function(DF,
         a <- a + 1
         ggplot2::ggsave(
           do.call(gridExtra::grid.arrange, GRAPH),
-          file = paste0(path_folder, "/output/trees_with_major_errors_", a, ".pdf"),
+          file = paste0(getwd(), "/output/trees_with_major_errors_", a, ".pdf"),
           width = 29.7, height = 20.1, units = "cm"
         )
 
@@ -927,7 +923,7 @@ flag_errors <- function(DF,
   if (output_errors & length(ID) > 0) {
     utils::write.csv(
       DF[treeID %in% ID],
-      file = paste0(path_folder, "/output/trees_with_major_errors.csv")
+      file = paste0(getwd(), "/output/trees_with_major_errors.csv")
     )
   }
 
