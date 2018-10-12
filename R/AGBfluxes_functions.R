@@ -30,6 +30,8 @@
 #'
 #' @return A data.table (data.frame) with all relevant variables.
 #'
+#' @export
+#'
 #' @examples
 #' \dontrun{
 #' data_preparation(
