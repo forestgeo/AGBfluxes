@@ -5,7 +5,7 @@
 \title{CTFS-formated data preparation.}
 \usage{
 data_preparation(site, stem, WD = NULL, taper_correction, fill_missing,
-  use_palm_allometry, flag_strangler, dbh_stranglers, maxrel,
+  use_palm_allometry, flag_stranglers, dbh_stranglers, maxrel,
   output_errors, DATA_path = NULL, exclude_interval = NULL)
 }
 \arguments{
@@ -24,6 +24,9 @@ correction.}
 palm trees using a palm-specific allometric model from Goodman et al.
 (2013).}
 
+\item{flag_stranglers}{\code{TRUE} or \code{FALSE}, individuals of known strangler fig
+species greater than 'dbh_stranglers' are flagged}
+
 \item{dbh_stranglers}{(optional) Minimal diameter (in mm) of strangler figs,
 default = 500.}
 
@@ -38,9 +41,6 @@ major errors in productivity to a csv file.}
 \item{exclude_interval}{\code{NULL} by default. If needed a vector (e.g. c(1,2))
 indicating which census interval(s) must be discarded from computation due,
 for instance, to a change in measurement protocol.}
-
-\item{flag_stranglers}{\code{TRUE} or \code{FALSE}, individuals of known strangler fig
-species greater than 'dbh_stranglers' are flagged}
 }
 \value{
 A data.table (data.frame) with all relevant variables.
@@ -57,7 +57,7 @@ data_preparation(
   taper_correction = TRUE,
   fill_missing = TRUE,
   use_palm_allometry = TRUE,
-  flag_strangler = TRUE,
+  flag_stranglers = TRUE,
   dbh_stranglers = 500,
   maxrel = 0.2,
   output_errors = TRUE,
