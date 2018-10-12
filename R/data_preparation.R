@@ -7,6 +7,7 @@
 #'   island'.
 #' @param stem `TRUE` or `FALSE`, using the stem data (`stem = TRUE`) rather
 #'   than the tree data (i.e. called 'full', `stem = FALSE`).
+#' @param dbh_units set the unit ("mm" or "cm") of DBH values, by default dbh_units=="mm"..
 #' @param taper_correction `TRUE` or `FALSE`, apply Cushman et al (2014) taper
 #'   correction.
 #' @param fill_missing `TRUE` or `FALSE`, interpolate missing DBH values.
@@ -49,6 +50,7 @@
 #' }
 data_preparation <- function(site,
                              stem,
+                              dbh_units="mm",
                              WD = NULL,
                              taper_correction,
                              fill_missing,
@@ -163,21 +165,16 @@ data_preparation <- function(site,
   # bci_stem_2000 <- temp
   # devtools::use_data(bci_stem_2000,overwrite = T)
 
-  # TODO: You don't need utils::data(). These objects are exported (i.e. they
-  # live in data/), therefore you can refer to them direclty.
-  # Load required data & information
-  utils::data(list = c("WSG", "site.info", "ficus"))
-
 
   # TODO: Rename to correct_data()?
   #   But what does it mean to correct data? What columns of df are affected?
-  df <- consolidate_data(df, taper_correction, fill_missing, stem)
+  df <- consolidate_data(df, dbh_units,taper_correction, fill_missing, stem)
 
 
   # TODO: Reorder to match formals:
   #   df, use_palm_allometry, DBH = NULL, WD = NULL, H = NULL
   # FIXME: This fails because WD can't be found.
-  df <- computeAGB(df, WD = WD, H = NULL, site=site,use_palm_allometry)
+  df <- compute_agb(df, WD = WD, H = NULL, site=site,use_palm_allometry)
 
   message("Step 3: AGB calculation done.")
 
@@ -300,6 +297,11 @@ consolidate_data <- function(df, taper_correction, fill_missing, stem) {
   NO.MEASURE <- df[, all(is.na(dbh2)), by = treeID]
   # remove trees without any measurement
   df <- df[!treeID %in% NO.MEASURE$treeID[NO.MEASURE$V1]]
+
+  # Check that DBHs are in mm
+  if (dbh_units=="cm") {
+  df[, c("dbh", "dbh2") := list(dbh*10,dbh2*10)]
+    }
   message("Step 2: Data consolidation done.")
 
   df
@@ -436,7 +438,7 @@ correctDBH <- function(DT, taper_correction, fill_missing) {
 #' @return A data.table (data.frame) with all relevant variables.
 #' @keywords internal
 #' @noRd
-computeAGB <- function(df,
+compute_agb <- function(df,
                        use_palm_allometry,
                        DBH = NULL,
                        WD = NULL,
@@ -448,6 +450,7 @@ computeAGB <- function(df,
   }
   # Allocate wood density
   df <- assignWD(df, site=site, WD=WD)
+
 
   # Compute biomass
   df <- assignAGB(df, site=site, DBH = DBH, H = H)
@@ -529,14 +532,13 @@ assignWD <- function(DAT, site, WD = NULL) {
     # TODO: Sure you need invisible? What are you trying to accomplish?
     # Maybe you mean to use suppressMessages() or suppressWarnings()?
     # TODO: Replace "A" by a more informative name.
-    A <- invisible(
-      BIOMASS::getWoodDensity(
+    A <- invisible(BIOMASS::getWoodDensity(
         SP$Genus,
         SP$Species,
         stand = rep(site, nrow(SP)),
         family = NULL,
-        addWoodDensityData = wsg
-      )
+        region = "World",
+        addWoodDensityData = wsg)
     )
   } else {
     A <- invisible(
@@ -861,43 +863,43 @@ flag_errors <- function(DF,
       Y$point <- 0
       Y$point[Y$error != 0] <- 1
 
-      GRAPH[[i]] <- ggplot2::ggplot(X, aes(x = y1, y = dbhc1)) +
-        geom_point(size = 2) +
-        geom_segment(data = Y,
-          aes(x = y1, y = dbhc1, xend = year, yend = dbhc2, linetype = as.factor(line))
+      GRAPH[[i]] <- ggplot2::ggplot(X, ggplot2::aes(x = y1, y = dbhc1)) +
+        ggplot2::geom_point(size = 2) +
+        ggplot2::geom_segment(data = Y,
+          ggplot2::aes(x = y1, y = dbhc1, xend = year, yend = dbhc2, linetype = as.factor(line))
         ) +
-        geom_point(data = X[point == 1], aes(x = year, y = dbhc2), col = 2) +
-        labs(title = paste0(unique(X$name), " (", ID[n], ")"), x = " ", y = "dbh (mm)") +
-        geom_text(data = Y,
-          aes(x = y1, y = dbh1 - (0.05 * dbh1)), label = round(Y$hom1, 2), cex = CX
+        ggplot2::geom_point(data = X[point == 1], ggplot2::aes(x = year, y = dbhc2), col = 2) +
+        ggplot2::labs(title = paste0(unique(X$name), " (", ID[n], ")"), x = " ", y = "dbh (mm)") +
+        ggplot2::geom_text(data = Y,
+          ggplot2::aes(x = y1, y = dbh1 - (0.05 * dbh1)), label = round(Y$hom1, 2), cex = CX
         ) +
-        geom_text(data = YY,
-          aes(x = year, y = d02 - (0.05 * d02)), label = round(YY$hom2, 2), cex = CX) +
-        geom_text(data = Y,
-          aes(x = year, y = 0.3 * max(dbhc2)), label = Y$dbh1, cex = CX,
+        ggplot2::geom_text(data = YY,
+          ggplot2::aes(x = year, y = d02 - (0.05 * d02)), label = round(YY$hom2, 2), cex = CX) +
+        ggplot2::geom_text(data = Y,
+          ggplot2::aes(x = year, y = 0.3 * max(dbhc2)), label = Y$dbh1, cex = CX,
           angle = 90, vjust = 1
         ) +
-        geom_text(data = YY,
-          aes(x = year, y = 0.3 * max(d2)),
+        ggplot2::geom_text(data = YY,
+          ggplot2::aes(x = year, y = 0.3 * max(d2)),
           label = YY$d02, cex = CX, angle = 90, vjust = 1
         ) +
-        theme(
-          plot.title = element_text(size = 5 * CX, face = "bold"),
-          axis.title.y = element_text(size = 5 * CX, , face = "bold"),
-          axis.text.y = element_text(size = 4 * CX),
-          axis.text.x = element_text(size = 4 * CX, vjust = 0, angle = 30),
-          panel.background = element_blank(),
-          strip.text = element_text(size = 4 * CX, face = "bold"),
-          strip.background = element_rect("lightgrey"),
-          panel.spacing = unit(0.1, "lines")
+        ggplot2::theme(
+          plot.title = ggplot2::element_text(size = 5 * CX, face = "bold"),
+          axis.title.y = ggplot2::element_text(size = 5 * CX, , face = "bold"),
+          axis.text.y = ggplot2::element_text(size = 4 * CX),
+          axis.text.x = ggplot2::element_text(size = 4 * CX, vjust = 0, angle = 30),
+          panel.background = ggplot2::element_blank(),
+          strip.text = ggplot2::element_text(size = 4 * CX, face = "bold"),
+          strip.background = ggplot2::element_rect("lightgrey"),
+          panel.spacing = grid::unit(0.1, "lines")
         ) +
-        scale_linetype_manual(values = c("0" = "dashed", "1" = "solid")) +
-        guides(linetype = F, colour = F) +
-        scale_x_continuous(
+        ggplot2::scale_linetype_manual(values = c("0" = "dashed", "1" = "solid")) +
+        ggplot2::guides(linetype = F, colour = F) +
+        ggplot2::scale_x_continuous(
           limits = c(min(as.numeric(YEAR)) - 3, max(as.numeric(YEAR)) + 3),
           breaks = as.numeric(YEAR)
         ) +
-        scale_y_continuous(limits = c(0.2 * max(YY$d2), max(X$dbhc2, X$dbhc1)))
+        ggplot2::scale_y_continuous(limits = c(0.2 * max(YY$d2), max(X$dbhc2, X$dbhc1)))
 
       if (i %% 15 == 0) { ## print 15 plots per page
         a <- a + 1

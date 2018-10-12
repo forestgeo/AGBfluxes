@@ -4,9 +4,10 @@
 \alias{data_preparation}
 \title{CTFS-formated data preparation.}
 \usage{
-data_preparation(site, stem, WD = NULL, taper_correction, fill_missing,
-  use_palm_allometry, flag_stranglers, dbh_stranglers, maxrel,
-  output_errors, DATA_path = NULL, exclude_interval = NULL)
+data_preparation(site, stem, dbh_units = "mm", WD = NULL,
+  taper_correction, fill_missing, use_palm_allometry, flag_stranglers,
+  dbh_stranglers, maxrel, output_errors, DATA_path = NULL,
+  exclude_interval = NULL)
 }
 \arguments{
 \item{site}{The full name of your site (in lower case); e.g., 'barro colorado
@@ -14,6 +15,8 @@ island'.}
 
 \item{stem}{\code{TRUE} or \code{FALSE}, using the stem data (\code{stem = TRUE}) rather
 than the tree data (i.e. called 'full', \code{stem = FALSE}).}
+
+\item{dbh_units}{set the unit ("mm" or "cm") of DBH values, by default dbh_units=="mm"..}
 
 \item{taper_correction}{\code{TRUE} or \code{FALSE}, apply Cushman et al (2014) taper
 correction.}
