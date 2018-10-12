@@ -863,43 +863,43 @@ flag_errors <- function(DF,
       Y$point <- 0
       Y$point[Y$error != 0] <- 1
 
-      GRAPH[[i]] <- ggplot2::ggplot(X, aes(x = y1, y = dbhc1)) +
-        geom_point(size = 2) +
-        geom_segment(data = Y,
-          aes(x = y1, y = dbhc1, xend = year, yend = dbhc2, linetype = as.factor(line))
+      GRAPH[[i]] <- ggplot2::ggplot(X, ggplot2::aes(x = y1, y = dbhc1)) +
+        ggplot2::geom_point(size = 2) +
+        ggplot2::geom_segment(data = Y,
+          ggplot2::aes(x = y1, y = dbhc1, xend = year, yend = dbhc2, linetype = as.factor(line))
         ) +
-        geom_point(data = X[point == 1], aes(x = year, y = dbhc2), col = 2) +
-        labs(title = paste0(unique(X$name), " (", ID[n], ")"), x = " ", y = "dbh (mm)") +
-        geom_text(data = Y,
-          aes(x = y1, y = dbh1 - (0.05 * dbh1)), label = round(Y$hom1, 2), cex = CX
+        ggplot2::geom_point(data = X[point == 1], ggplot2::aes(x = year, y = dbhc2), col = 2) +
+        ggplot2::labs(title = paste0(unique(X$name), " (", ID[n], ")"), x = " ", y = "dbh (mm)") +
+        ggplot2::geom_text(data = Y,
+          ggplot2::aes(x = y1, y = dbh1 - (0.05 * dbh1)), label = round(Y$hom1, 2), cex = CX
         ) +
-        geom_text(data = YY,
-          aes(x = year, y = d02 - (0.05 * d02)), label = round(YY$hom2, 2), cex = CX) +
-        geom_text(data = Y,
-          aes(x = year, y = 0.3 * max(dbhc2)), label = Y$dbh1, cex = CX,
+        ggplot2::geom_text(data = YY,
+          ggplot2::aes(x = year, y = d02 - (0.05 * d02)), label = round(YY$hom2, 2), cex = CX) +
+        ggplot2::geom_text(data = Y,
+          ggplot2::aes(x = year, y = 0.3 * max(dbhc2)), label = Y$dbh1, cex = CX,
           angle = 90, vjust = 1
         ) +
-        geom_text(data = YY,
-          aes(x = year, y = 0.3 * max(d2)),
+        ggplot2::geom_text(data = YY,
+          ggplot2::aes(x = year, y = 0.3 * max(d2)),
           label = YY$d02, cex = CX, angle = 90, vjust = 1
         ) +
-        theme(
-          plot.title = element_text(size = 5 * CX, face = "bold"),
-          axis.title.y = element_text(size = 5 * CX, , face = "bold"),
-          axis.text.y = element_text(size = 4 * CX),
-          axis.text.x = element_text(size = 4 * CX, vjust = 0, angle = 30),
-          panel.background = element_blank(),
-          strip.text = element_text(size = 4 * CX, face = "bold"),
-          strip.background = element_rect("lightgrey"),
-          panel.spacing = unit(0.1, "lines")
+        ggplot2::theme(
+          plot.title = ggplot2::element_text(size = 5 * CX, face = "bold"),
+          axis.title.y = ggplot2::element_text(size = 5 * CX, , face = "bold"),
+          axis.text.y = ggplot2::element_text(size = 4 * CX),
+          axis.text.x = ggplot2::element_text(size = 4 * CX, vjust = 0, angle = 30),
+          panel.background = ggplot2::element_blank(),
+          strip.text = ggplot2::element_text(size = 4 * CX, face = "bold"),
+          strip.background = ggplot2::element_rect("lightgrey"),
+          panel.spacing = grid::unit(0.1, "lines")
         ) +
-        scale_linetype_manual(values = c("0" = "dashed", "1" = "solid")) +
-        guides(linetype = F, colour = F) +
-        scale_x_continuous(
+        ggplot2::scale_linetype_manual(values = c("0" = "dashed", "1" = "solid")) +
+        ggplot2::guides(linetype = F, colour = F) +
+        ggplot2::scale_x_continuous(
           limits = c(min(as.numeric(YEAR)) - 3, max(as.numeric(YEAR)) + 3),
           breaks = as.numeric(YEAR)
         ) +
-        scale_y_continuous(limits = c(0.2 * max(YY$d2), max(X$dbhc2, X$dbhc1)))
+        ggplot2::scale_y_continuous(limits = c(0.2 * max(YY$d2), max(X$dbhc2, X$dbhc1)))
 
       if (i %% 15 == 0) { ## print 15 plots per page
         a <- a + 1

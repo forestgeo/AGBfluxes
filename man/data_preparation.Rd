@@ -4,16 +4,10 @@
 \alias{data_preparation}
 \title{CTFS-formated data preparation.}
 \usage{
-<<<<<<< HEAD
 data_preparation(site, stem, dbh_units = "mm", WD = NULL,
   taper_correction, fill_missing, use_palm_allometry, flag_stranglers,
   dbh_stranglers, maxrel, output_errors, DATA_path = NULL,
   exclude_interval = NULL)
-=======
-data_preparation(site, stem, WD = NULL, taper_correction, fill_missing,
-  use_palm_allometry, flag_stranglers, dbh_stranglers, maxrel,
-  output_errors, DATA_path = NULL, exclude_interval = NULL)
->>>>>>> dev
 }
 \arguments{
 \item{site}{The full name of your site (in lower case); e.g., 'barro colorado
