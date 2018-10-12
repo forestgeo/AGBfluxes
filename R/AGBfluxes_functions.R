@@ -7,6 +7,7 @@
 #'   island'.
 #' @param stem `TRUE` or `FALSE`, using the stem data (`stem = TRUE`) rather
 #'   than the tree data (i.e. called 'full', `stem = FALSE`).
+#' @param dbh_units set the unit ("mm" or "cm") of DBH values, by default dbh_units=="mm"..
 #' @param taper_correction `TRUE` or `FALSE`, apply Cushman et al (2014) taper
 #'   correction.
 #' @param fill_missing `TRUE` or `FALSE`, interpolate missing DBH values.
@@ -47,7 +48,7 @@
 #' }
 data_preparation <- function(site,
                              stem,
-                            dbh_units="cm",
+                              dbh_units="mm",
                              WD = NULL,
                              taper_correction,
                              fill_missing,
@@ -161,11 +162,6 @@ data_preparation <- function(site,
   # temp[treeID%in%ID.TREE]$hom <- NA
   # bci_stem_2000 <- temp
   # devtools::use_data(bci_stem_2000,overwrite = T)
-
-  # TODO: You don't need utils::data(). These objects are exported (i.e. they
-  # live in data/), therefore you can refer to them direclty.
-  # Load required data & information
-  utils::data(list = c("WSG", "site.info", "ficus"))
 
 
   # TODO: Rename to correct_data()?
