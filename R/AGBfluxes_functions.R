@@ -174,7 +174,7 @@ data_preparation <- function(site,
   # TODO: Reorder to match formals:
   #   df, use_palm_allometry, DBH = NULL, WD = NULL, H = NULL
   # FIXME: This fails because WD can't be found.
-  df <- computeAGB(df, WD = WD, H = NULL, site=site,use_palm_allometry)
+  df <- compute_agb(df, WD = WD, H = NULL, site=site,use_palm_allometry)
 
   message("Step 3: AGB calculation done.")
 
@@ -438,7 +438,7 @@ correctDBH <- function(DT, taper_correction, fill_missing) {
 #' @return A data.table (data.frame) with all relevant variables.
 #' @keywords internal
 #' @noRd
-computeAGB <- function(df,
+compute_agb <- function(df,
                        use_palm_allometry,
                        DBH = NULL,
                        WD = NULL,
