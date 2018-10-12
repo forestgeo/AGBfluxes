@@ -47,6 +47,7 @@
 #' }
 data_preparation <- function(site,
                              stem,
+                            dbh_units="cm",
                              WD = NULL,
                              taper_correction,
                              fill_missing,
@@ -169,7 +170,7 @@ data_preparation <- function(site,
 
   # TODO: Rename to correct_data()?
   #   But what does it mean to correct data? What columns of df are affected?
-  df <- consolidate_data(df, taper_correction, fill_missing, stem)
+  df <- consolidate_data(df, dbh_units,taper_correction, fill_missing, stem)
 
 
   # TODO: Reorder to match formals:
@@ -298,6 +299,11 @@ consolidate_data <- function(df, taper_correction, fill_missing, stem) {
   NO.MEASURE <- df[, all(is.na(dbh2)), by = treeID]
   # remove trees without any measurement
   df <- df[!treeID %in% NO.MEASURE$treeID[NO.MEASURE$V1]]
+
+  # Check that DBHs are in mm
+  if (dbh_units=="cm") {
+  df[, c("dbh", "dbh2") := list(dbh*10,dbh2*10)]
+    }
   message("Step 2: Data consolidation done.")
 
   df
