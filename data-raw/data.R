@@ -2,8 +2,7 @@
 paths <- fs::dir_ls(here::here("data-raw"), glob = "*.rda")
 purrr::map(paths, load, envir = globalenv())
 
-# Source: Ervan Rutishauser (er.rutishauser@gmail.com), taken form the data/
-# TODO: Where raw-data came from and how you cleaned it (or clean it here)?
+# Source: Ervan Rutishauser (er.rutishauser@gmail.com). Documente in R/data.R
 
 # Use data (compress and move each dataset to data/)
 use_data(
@@ -14,14 +13,8 @@ use_data(
   ficus,
   site.info,
   WSG,
+  df,
+
   overwrite = TRUE
 )
 
-# Store WD data from the BIOMASS pkg
-usethis::use_data(
-  wdData,
-  sd_10,
-  overwrite=T
-)
-# DF was in "barro colorado island_formated_data.Rdata" stored in data/.
-usethis::use_data(df, overwrite = TRUE)
