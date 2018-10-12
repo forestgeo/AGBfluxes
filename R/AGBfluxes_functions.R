@@ -447,6 +447,7 @@ computeAGB <- function(df,
   # Allocate wood density
   df <- assignWD(df, site=site, WD=WD)
 
+
   # Compute biomass
   df <- assignAGB(df, site=site, DBH = DBH, H = H)
 
@@ -527,14 +528,13 @@ assignWD <- function(DAT, site, WD = NULL) {
     # TODO: Sure you need invisible? What are you trying to accomplish?
     # Maybe you mean to use suppressMessages() or suppressWarnings()?
     # TODO: Replace "A" by a more informative name.
-    A <- invisible(
-      BIOMASS::getWoodDensity(
+    A <- invisible(BIOMASS::getWoodDensity(
         SP$Genus,
         SP$Species,
         stand = rep(site, nrow(SP)),
         family = NULL,
-        addWoodDensityData = wsg
-      )
+        region = "World",
+        addWoodDensityData = wsg)
     )
   } else {
     A <- invisible(
