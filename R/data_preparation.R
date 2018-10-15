@@ -60,7 +60,8 @@ data_preparation <- function(site,
                              maxrel,
                              output_errors,
                              DATA_path = NULL,
-                             exclude_interval = NULL) {
+                             exclude_interval = NULL,
+                             graph_problem_trees = FALSE) {
   # TODO: Rename data_preparation() to prepare_data()
 
   # site <- tolower(site)
@@ -187,7 +188,8 @@ data_preparation <- function(site,
     flag_stranglers = flag_stranglers,
     maxrel = maxrel,
     output_errors = output_errors,
-    exclude_interval = exclude_interval
+    exclude_interval = exclude_interval,
+    graph_problem_trees = graph_problem_trees
   )
   message("Step 5: Errors flagged. Saving formated data into 'data' folder.")
 
@@ -803,7 +805,8 @@ flag_errors <- function(DF,
                         flag_stranglers,
                         maxrel,
                         output_errors,
-                        exclude_interval) {
+                        exclude_interval,
+                        graph_problem_trees) {
   mean.prod <- determine_mean_prod(DF, site, flag_stranglers, exclude_interval)
   DF[, prod.rel := as.numeric(NA), ]
   # relative contribution to average total productivity
@@ -825,16 +828,6 @@ flag_errors <- function(DF,
   # ID <- DF[error!=0 & !code%in%c("D","R"),nrow(.SD)>=1,by=treeID]
   # ID <- ID[V1==T,treeID]
   ID <- unique(DF[error != 0, treeID])
-  A <- utils::menu(
-    c("Y", "N"),
-    title = paste(
-      "There are",length(ID),
-      "trees with errors. Do you want to print",
-      round(length(ID)/15),"pages?"
-    )
-  )
-
-  ifelse(A == 1, graph_problem_trees <- T, graph_problem_trees <- F)
 
   if (graph_problem_trees) { # Plot trees with large major error
     YEAR <- levels(factor(DF$year))
