@@ -21,8 +21,10 @@
 #' @param maxrel A numeric value: the threshold for flagging major errors in
 #'   productivity, applied as `absval(individual-tree-productivity) > maxrel *
 #'   (average-productivity-per-hectare)`.
-#' @param output_errors `TRUE` or `FALSE`, output all records for trees with
-#'   major errors in productivity to a csv file.
+#' @param write_errors_to A string giving a directory with the format
+#'   "path/to/file" (without extention) to output all records for trees with
+#'   major errors in productivity to a csv file. Defaults to not write such a
+#'   file.
 #' @param DATA_path The pathname where the data are located.
 #' @param exclude_interval `NULL` by default. If needed a vector (e.g. c(1,2))
 #'   indicating which census interval(s) must be discarded from computation due,
@@ -33,7 +35,6 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
 #' data_preparation(
 #'   site = "barro colorado island",
 #'   stem = TRUE,
@@ -43,14 +44,14 @@
 #'   flag_stranglers = TRUE,
 #'   dbh_stranglers = 500,
 #'   maxrel = 0.2,
-#'   output_errors = TRUE,
+#'   write_errors_to = NULL,
 #'   DATA_path = NULL,
-#'   exclude_interval = NULL
+#'   exclude_interval = NULL,
+#'   graph_problems_to = NULL
 #' )
-#' }
 data_preparation <- function(site,
                              stem,
-                              dbh_units="mm",
+                             dbh_units="mm",
                              WD = NULL,
                              taper_correction,
                              fill_missing,
@@ -58,10 +59,10 @@ data_preparation <- function(site,
                              flag_stranglers,
                              dbh_stranglers,
                              maxrel,
-                             output_errors,
+                             write_errors_to = NULL,
                              DATA_path = NULL,
                              exclude_interval = NULL,
-                             graph_problem_trees = FALSE) {
+                             graph_problems_to = NULL) {
   # TODO: Rename data_preparation() to prepare_data()
 
   # site <- tolower(site)
@@ -187,14 +188,11 @@ data_preparation <- function(site,
     site,
     flag_stranglers = flag_stranglers,
     maxrel = maxrel,
-    output_errors = output_errors,
+    write_errors_to = write_errors_to,
     exclude_interval = exclude_interval,
-    graph_problem_trees = graph_problem_trees
+    graph_problems_to = graph_problems_to
   )
-  message("Step 5: Errors flagged. Saving formated data into 'data' folder.")
-
-  # TODO: Again, Why not output an object rather than write files?
-  save(DF, file = paste0(getwd(), "/data/", site, "_formated_data.Rdata"))
+  message("Step 5: Errors flagged.")
 
   DF[order(year,treeID)]
 }
@@ -782,7 +780,7 @@ format_interval <- function(df,
 #' (set by 'maxrel') of the mean productivity computed at a site. Additionnaly,
 #' flagged trees that died at next census interval are also flagged. Option to
 #' see DBH measurement (=draw.graph) of flagged trees or print a csv
-#' (output_errors) are given.
+#' (write_errors_to) are given.
 #'
 #' @param DF A data.table.
 #' @param site Provide the full name of your site (in lower case) i.e. 'barro
@@ -791,7 +789,7 @@ format_interval <- function(df,
 #'   flagged (upon a list to published soon).
 #' @param maxrel A numeric value setting the threshold over which relative
 #'   productivity is assumed to be too high (usually set at 20 percents).
-#' @param output_errors `TRUE` or `FALSE`, output all records for trees with
+#' @param write_errors_to `TRUE` or `FALSE`, output all records for trees with
 #'   major errors in productivity to a csv file.
 #' @param exclude_interval A vector (i.e. c(1,2)) indicating if a set of census
 #'   intervals must be discarded from computation due for instance to a change
@@ -804,9 +802,9 @@ flag_errors <- function(DF,
                         site,
                         flag_stranglers,
                         maxrel,
-                        output_errors,
+                        write_errors_to,
                         exclude_interval,
-                        graph_problem_trees) {
+                        graph_problems_to) {
   mean.prod <- determine_mean_prod(DF, site, flag_stranglers, exclude_interval)
   DF[, prod.rel := as.numeric(NA), ]
   # relative contribution to average total productivity
@@ -829,7 +827,7 @@ flag_errors <- function(DF,
   # ID <- ID[V1==T,treeID]
   ID <- unique(DF[error != 0, treeID])
 
-  if (graph_problem_trees) { # Plot trees with large major error
+  if (!is.null(graph_problems_to)) { # Plot trees with large major error
     YEAR <- levels(factor(DF$year))
     CX <- 2
     a <- 0
@@ -898,7 +896,7 @@ flag_errors <- function(DF,
         a <- a + 1
         ggplot2::ggsave(
           do.call(gridExtra::grid.arrange, GRAPH),
-          file = paste0(getwd(), "/output/trees_with_major_errors_", a, ".pdf"),
+          file = paste0(graph_problems_to, "_", a, ".pdf"),
           width = 29.7, height = 20.1, units = "cm"
         )
 
@@ -917,11 +915,8 @@ flag_errors <- function(DF,
     )
   }
 
-  if (output_errors & length(ID) > 0) {
-    utils::write.csv(
-      DF[treeID %in% ID],
-      file = paste0(getwd(), "/output/trees_with_major_errors.csv")
-    )
+  if (!is.null(write_errors_to) & length(ID) > 0) {
+    utils::write.csv(DF[treeID %in% ID], file = paste0(write_errors_to, ".csv"))
   }
 
   # TODO: Functions should generally either return a plot or an object (e.g. DF)

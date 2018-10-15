@@ -6,8 +6,8 @@
 \usage{
 data_preparation(site, stem, dbh_units = "mm", WD = NULL,
   taper_correction, fill_missing, use_palm_allometry, flag_stranglers,
-  dbh_stranglers, maxrel, output_errors, DATA_path = NULL,
-  exclude_interval = NULL)
+  dbh_stranglers, maxrel, write_errors_to = NULL, DATA_path = NULL,
+  exclude_interval = NULL, graph_problems_to = NULL)
 }
 \arguments{
 \item{site}{The full name of your site (in lower case); e.g., 'barro colorado
@@ -36,8 +36,10 @@ default = 500.}
 \item{maxrel}{A numeric value: the threshold for flagging major errors in
 productivity, applied as \code{absval(individual-tree-productivity) > maxrel * (average-productivity-per-hectare)}.}
 
-\item{output_errors}{\code{TRUE} or \code{FALSE}, output all records for trees with
-major errors in productivity to a csv file.}
+\item{write_errors_to}{A string giving a directory with the format
+"path/to/file" (without extention) to output all records for trees with
+major errors in productivity to a csv file. Defaults to not write such a
+file.}
 
 \item{DATA_path}{The pathname where the data are located.}
 
@@ -53,7 +55,6 @@ Main routine to format, detect major obvious errors, and gap-fill those
 errors in CTFS-formated data.
 }
 \examples{
-\dontrun{
 data_preparation(
   site = "barro colorado island",
   stem = TRUE,
@@ -63,9 +64,9 @@ data_preparation(
   flag_stranglers = TRUE,
   dbh_stranglers = 500,
   maxrel = 0.2,
-  output_errors = TRUE,
+  write_errors_to = NULL,
   DATA_path = NULL,
-  exclude_interval = NULL
+  exclude_interval = NULL,
+  graph_problems_to = NULL
 )
-}
 }
