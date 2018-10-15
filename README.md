@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# <img src="https://i.imgur.com/vTLlhbp.png" align="right" height=88 /> Compute flux of biomass at ForestGEO sites
+# <img src="https://i.imgur.com/vTLlhbp.png" align="right" height=88 /> Compute biomass fluxes at ForestGEO sites
 
 [![lifecycle](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
 [![Travis build
@@ -23,9 +23,27 @@ devtools::install_github("AGBfluxes")
 
 ## Example
 
-TODO: This is a basic example which shows you how to solve a common
-problem:
-
 ``` r
-## basic example code
+# Document: devtools::document() or (Shift + Control + D)
+# Build: devtools::build() or Shift + Control + B)
+# Install: devtools::install() or click Install and Restart
+# Restart session (Control + Shift + F10)
+
+library(AGBfluxes)
+
+data_preparation(
+  site = "barro colorado island",
+  stem = TRUE,
+  taper_correction = TRUE,
+  fill_missing = TRUE,
+  use_palm_allometry = TRUE,
+  flag_stranglers = TRUE,
+  dbh_stranglers = 500,
+  maxrel = 0.2,
+  output_errors = TRUE,
+  DATA_path = NULL,
+  exclude_interval = NULL
+)
+#> Step 1: Data import done.
+#> Error in consolidate_data(df, dbh_units, taper_correction, fill_missing, : unused argument (stem)
 ```

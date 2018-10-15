@@ -7,7 +7,7 @@
 \alias{bci_stem_2000}
 \alias{bci_stem_2005}
 \title{Example stem-tables from Barro Colorado Island (BCI).}
-\format{An object of class \code{data.table} (inherits from \code{data.frame}) with 500 rows and 17 columns.}
+\format{An object of class \code{data.table} (inherits from \code{data.frame}) with 0 rows and 17 columns.}
 \usage{
 bci_stem_1995
 
