@@ -45,7 +45,7 @@
 #'   dbh_stranglers = 500,
 #'   maxrel = 0.2,
 #'   write_errors_to = NULL,
-#'   DATA_path = NULL,
+#'   DATA_path = agb_example(data),
 #'   exclude_interval = NULL,
 #'   graph_problems_to = NULL
 #' )

@@ -25,7 +25,8 @@ Imports:
     ggplot2,
     gridExtra,
     stats,
-    utils
+    utils,
+    fs
 Suggests:
     covr,
     testthat
