@@ -40,8 +40,5 @@ data_preparation(
   exclude_interval = NULL
 )
 #> Step 1: Data import done.
-#> Step 2: Data consolidation done.
-#> Warning in data(wdData, envir = environment()): data set 'wdData' not found
-#> Warning in data(sd_10, envir = environment()): data set 'sd_10' not found
-#> Error in if (nrow(subWdData) == 0) stop("The region you entered is not recognized in the global wood density database"): argument is of length zero
+#> Error in consolidate_data(df, dbh_units, taper_correction, fill_missing, : unused argument (stem)
 ```
