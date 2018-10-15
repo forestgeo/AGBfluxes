@@ -2,9 +2,10 @@
 paths <- fs::dir_ls(here::here("data-raw"), glob = "*.rda")
 purrr::map(paths, load, envir = globalenv())
 
-# Source: Ervan Rutishauser (er.rutishauser@gmail.com). Documente in R/data.R
+# Source: Ervan Rutishauser (er.rutishauser@gmail.com). Documented in R/data.R
 
 # Use data (compress and move each dataset to data/)
+dfm <- DF
 use_data(
   bci.spptable,
   bci_stem_1995,
@@ -13,6 +14,6 @@ use_data(
   ficus,
   site.info,
   WSG,
-  df,
+  dfm,
   overwrite = TRUE
 )
