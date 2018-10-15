@@ -4,10 +4,14 @@
 #' errors in CTFS-formated data.
 #'
 #' @param site The full name of your site (in lower case); e.g., 'barro colorado
-#'   island'.
+#'   island' (TODO: Do you need to clarify that this should be a valid value
+#'   of `site.info$site`?).
 #' @param stem `TRUE` or `FALSE`, using the stem data (`stem = TRUE`) rather
 #'   than the tree data (i.e. called 'full', `stem = FALSE`).
-#' @param dbh_units set the unit ("mm" or "cm") of DBH values, by default dbh_units=="mm"..
+#' @param dbh_units set the unit ("mm" or "cm") of DBH values, by default
+#'   dbh_units=="mm".
+#' @param WD Optional, provide an external data.frame of wood densities by
+#'   species.
 #' @param taper_correction `TRUE` or `FALSE`, apply Cushman et al (2014) taper
 #'   correction.
 #' @param fill_missing `TRUE` or `FALSE`, interpolate missing DBH values.
@@ -36,6 +40,7 @@
 #'
 #' @examples
 #' data_preparation(
+#'   DATA_path = agb_example("data"),
 #'   site = "barro colorado island",
 #'   stem = TRUE,
 #'   taper_correction = TRUE,
@@ -45,22 +50,21 @@
 #'   dbh_stranglers = 500,
 #'   maxrel = 0.2,
 #'   write_errors_to = NULL,
-#'   DATA_path = agb_example(data),
 #'   exclude_interval = NULL,
 #'   graph_problems_to = NULL
 #' )
-data_preparation <- function(site,
-                             stem,
+data_preparation <- function(stem,
+                             DATA_path = NULL,
+                             site,
                              dbh_units = "mm",
                              WD = NULL,
-                             taper_correction,
-                             fill_missing,
-                             use_palm_allometry,
-                             flag_stranglers,
-                             dbh_stranglers,
-                             maxrel,
+                             taper_correction = TRUE,
+                             fill_missing = TRUE,
+                             use_palm_allometry = TRUE,
+                             flag_stranglers = TRUE,
+                             dbh_stranglers = 500,
+                             maxrel = 0.2,
                              write_errors_to = NULL,
-                             DATA_path = NULL,
                              exclude_interval = NULL,
                              graph_problems_to = NULL) {
   # TODO: Rename data_preparation() to prepare_data()

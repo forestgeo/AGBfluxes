@@ -4,19 +4,27 @@
 \alias{data_preparation}
 \title{CTFS-formated data preparation.}
 \usage{
-data_preparation(site, stem, dbh_units = "mm", WD = NULL,
-  taper_correction, fill_missing, use_palm_allometry, flag_stranglers,
-  dbh_stranglers, maxrel, write_errors_to = NULL, DATA_path = NULL,
+data_preparation(stem, DATA_path = NULL, site, dbh_units = "mm",
+  WD = NULL, taper_correction = TRUE, fill_missing = TRUE,
+  use_palm_allometry = TRUE, flag_stranglers = TRUE,
+  dbh_stranglers = 500, maxrel = 0.2, write_errors_to = NULL,
   exclude_interval = NULL, graph_problems_to = NULL)
 }
 \arguments{
-\item{site}{The full name of your site (in lower case); e.g., 'barro colorado
-island'.}
-
 \item{stem}{\code{TRUE} or \code{FALSE}, using the stem data (\code{stem = TRUE}) rather
 than the tree data (i.e. called 'full', \code{stem = FALSE}).}
 
-\item{dbh_units}{set the unit ("mm" or "cm") of DBH values, by default dbh_units=="mm"..}
+\item{DATA_path}{The pathname where the data are located.}
+
+\item{site}{The full name of your site (in lower case); e.g., 'barro colorado
+island' (TODO: Do you need to clarify that this should be a valid value
+of \code{site.info$site}?).}
+
+\item{dbh_units}{set the unit ("mm" or "cm") of DBH values, by default
+dbh_units=="mm".}
+
+\item{WD}{Optional, provide an external data.frame of wood densities by
+species.}
 
 \item{taper_correction}{\code{TRUE} or \code{FALSE}, apply Cushman et al (2014) taper
 correction.}
@@ -41,8 +49,6 @@ productivity, applied as \code{absval(individual-tree-productivity) > maxrel * (
 major errors in productivity to a csv file. Defaults to not write such a
 file.}
 
-\item{DATA_path}{The pathname where the data are located.}
-
 \item{exclude_interval}{\code{NULL} by default. If needed a vector (e.g. c(1,2))
 indicating which census interval(s) must be discarded from computation due,
 for instance, to a change in measurement protocol.}
@@ -56,6 +62,7 @@ errors in CTFS-formated data.
 }
 \examples{
 data_preparation(
+  DATA_path = agb_example("data"),
   site = "barro colorado island",
   stem = TRUE,
   taper_correction = TRUE,
@@ -65,7 +72,6 @@ data_preparation(
   dbh_stranglers = 500,
   maxrel = 0.2,
   write_errors_to = NULL,
-  DATA_path = NULL,
   exclude_interval = NULL,
   graph_problems_to = NULL
 )
