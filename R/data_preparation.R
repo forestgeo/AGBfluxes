@@ -174,7 +174,7 @@ data_preparation <- function(site,
   # TODO: Reorder to match formals:
   #   df, use_palm_allometry, DBH = NULL, WD = NULL, H = NULL
   # FIXME: This fails because WD can't be found.
-  df <- computeAGB(df, WD = WD, H = NULL, site=site,use_palm_allometry)
+  df <- compute_agb(df, WD = WD, H = NULL, site=site,use_palm_allometry)
 
   message("Step 3: AGB calculation done.")
 
@@ -240,7 +240,7 @@ data_preparation <- function(site,
 #'
 #' @keywords internal
 #' @noRd
-consolidate_data <- function(df, taper_correction, fill_missing, stem) {
+consolidate_data <- function(df, dbh_units,taper_correction, fill_missing, stem) {
   if (stem) {
     df[, "id" := paste(treeID, stemID, sep = "-")] # creat a unique tree-stem ID
     df <- df[order(id, CensusID)]
@@ -438,7 +438,7 @@ correctDBH <- function(DT, taper_correction, fill_missing) {
 #' @return A data.table (data.frame) with all relevant variables.
 #' @keywords internal
 #' @noRd
-computeAGB <- function(df,
+compute_agb <- function(df,
                        use_palm_allometry,
                        DBH = NULL,
                        WD = NULL,
@@ -863,43 +863,43 @@ flag_errors <- function(DF,
       Y$point <- 0
       Y$point[Y$error != 0] <- 1
 
-      GRAPH[[i]] <- ggplot2::ggplot(X, aes(x = y1, y = dbhc1)) +
-        geom_point(size = 2) +
-        geom_segment(data = Y,
-          aes(x = y1, y = dbhc1, xend = year, yend = dbhc2, linetype = as.factor(line))
+      GRAPH[[i]] <- ggplot2::ggplot(X, ggplot2::aes(x = y1, y = dbhc1)) +
+        ggplot2::geom_point(size = 2) +
+        ggplot2::geom_segment(data = Y,
+          ggplot2::aes(x = y1, y = dbhc1, xend = year, yend = dbhc2, linetype = as.factor(line))
         ) +
-        geom_point(data = X[point == 1], aes(x = year, y = dbhc2), col = 2) +
-        labs(title = paste0(unique(X$name), " (", ID[n], ")"), x = " ", y = "dbh (mm)") +
-        geom_text(data = Y,
-          aes(x = y1, y = dbh1 - (0.05 * dbh1)), label = round(Y$hom1, 2), cex = CX
+        ggplot2::geom_point(data = X[point == 1], ggplot2::aes(x = year, y = dbhc2), col = 2) +
+        ggplot2::labs(title = paste0(unique(X$name), " (", ID[n], ")"), x = " ", y = "dbh (mm)") +
+        ggplot2::geom_text(data = Y,
+          ggplot2::aes(x = y1, y = dbh1 - (0.05 * dbh1)), label = round(Y$hom1, 2), cex = CX
         ) +
-        geom_text(data = YY,
-          aes(x = year, y = d02 - (0.05 * d02)), label = round(YY$hom2, 2), cex = CX) +
-        geom_text(data = Y,
-          aes(x = year, y = 0.3 * max(dbhc2)), label = Y$dbh1, cex = CX,
+        ggplot2::geom_text(data = YY,
+          ggplot2::aes(x = year, y = d02 - (0.05 * d02)), label = round(YY$hom2, 2), cex = CX) +
+        ggplot2::geom_text(data = Y,
+          ggplot2::aes(x = year, y = 0.3 * max(dbhc2)), label = Y$dbh1, cex = CX,
           angle = 90, vjust = 1
         ) +
-        geom_text(data = YY,
-          aes(x = year, y = 0.3 * max(d2)),
+        ggplot2::geom_text(data = YY,
+          ggplot2::aes(x = year, y = 0.3 * max(d2)),
           label = YY$d02, cex = CX, angle = 90, vjust = 1
         ) +
-        theme(
-          plot.title = element_text(size = 5 * CX, face = "bold"),
-          axis.title.y = element_text(size = 5 * CX, , face = "bold"),
-          axis.text.y = element_text(size = 4 * CX),
-          axis.text.x = element_text(size = 4 * CX, vjust = 0, angle = 30),
-          panel.background = element_blank(),
-          strip.text = element_text(size = 4 * CX, face = "bold"),
-          strip.background = element_rect("lightgrey"),
-          panel.spacing = unit(0.1, "lines")
+        ggplot2::theme(
+          plot.title = ggplot2::element_text(size = 5 * CX, face = "bold"),
+          axis.title.y = ggplot2::element_text(size = 5 * CX, , face = "bold"),
+          axis.text.y = ggplot2::element_text(size = 4 * CX),
+          axis.text.x = ggplot2::element_text(size = 4 * CX, vjust = 0, angle = 30),
+          panel.background = ggplot2::element_blank(),
+          strip.text = ggplot2::element_text(size = 4 * CX, face = "bold"),
+          strip.background = ggplot2::element_rect("lightgrey"),
+          panel.spacing = grid::unit(0.1, "lines")
         ) +
-        scale_linetype_manual(values = c("0" = "dashed", "1" = "solid")) +
-        guides(linetype = F, colour = F) +
-        scale_x_continuous(
+        ggplot2::scale_linetype_manual(values = c("0" = "dashed", "1" = "solid")) +
+        ggplot2::guides(linetype = F, colour = F) +
+        ggplot2::scale_x_continuous(
           limits = c(min(as.numeric(YEAR)) - 3, max(as.numeric(YEAR)) + 3),
           breaks = as.numeric(YEAR)
         ) +
-        scale_y_continuous(limits = c(0.2 * max(YY$d2), max(X$dbhc2, X$dbhc1)))
+        ggplot2::scale_y_continuous(limits = c(0.2 * max(YY$d2), max(X$dbhc2, X$dbhc1)))
 
       if (i %% 15 == 0) { ## print 15 plots per page
         a <- a + 1
@@ -1286,4 +1286,16 @@ trim_growth <- function(cens,
   growth[!accept] <- NA
 
   growth
+}
+
+#' Create a dataframe with one row full of missing values.
+#'
+#' @param .names String giving the names of the dataframe to create.
+#'
+#' @return A dataframe.
+#' @keywords internal
+#' @noRd
+receiving_df <- function(.names) {
+  na <- as.list(rep(NA, length(.names)))
+  stats::setNames(data.frame(na), .names)
 }

@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# <img src="https://i.imgur.com/vTLlhbp.png" align="right" height=88 /> Compute flux of biomass at ForestGEO sites
+# <img src="https://i.imgur.com/vTLlhbp.png" align="right" height=88 /> Compute biomass fluxes at ForestGEO sites
 
 [![lifecycle](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
 [![Travis build
@@ -23,9 +23,25 @@ devtools::install_github("AGBfluxes")
 
 ## Example
 
-TODO: This is a basic example which shows you how to solve a common
-problem:
-
 ``` r
-## basic example code
+library(AGBfluxes)
+
+data_preparation(
+  site = "barro colorado island",
+  stem = TRUE,
+  taper_correction = TRUE,
+  fill_missing = TRUE,
+  use_palm_allometry = TRUE,
+  flag_stranglers = TRUE,
+  dbh_stranglers = 500,
+  maxrel = 0.2,
+  output_errors = TRUE,
+  DATA_path = NULL,
+  exclude_interval = NULL
+)
+#> Step 1: Data import done.
+#> Step 2: Data consolidation done.
+#> Warning in data(wdData, envir = environment()): data set 'wdData' not found
+#> Warning in data(sd_10, envir = environment()): data set 'sd_10' not found
+#> Error in if (nrow(subWdData) == 0) stop("The region you entered is not recognized in the global wood density database"): argument is of length zero
 ```

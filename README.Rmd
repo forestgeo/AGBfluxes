@@ -31,9 +31,22 @@ devtools::install_github("AGBfluxes")
 
 ## Example
 
-TODO: This is a basic example which shows you how to solve a common problem:
+```{r, error=TRUE}
+library(AGBfluxes)
 
-```{r example}
-## basic example code
+data_preparation(
+  site = "barro colorado island",
+  stem = TRUE,
+  taper_correction = TRUE,
+  fill_missing = TRUE,
+  use_palm_allometry = TRUE,
+  flag_stranglers = TRUE,
+  dbh_stranglers = 500,
+  maxrel = 0.2,
+  output_errors = TRUE,
+  DATA_path = NULL,
+  exclude_interval = NULL
+)
+
 ```
 
