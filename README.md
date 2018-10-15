@@ -29,20 +29,14 @@ method.
 ``` r
 library(AGBfluxes)
 
-prep <- data_preparation(
-  site = "barro colorado island",
-  stem = TRUE,
-  taper_correction = TRUE,
-  fill_missing = TRUE,
-  use_palm_allometry = TRUE,
-  flag_stranglers = TRUE,
-  dbh_stranglers = 500,
-  maxrel = 0.2,
-  write_errors_to = NULL,
-  DATA_path = NULL,
-  exclude_interval = NULL,
-  graph_problems_to = NULL
-)
+# Make sure the name of your site is as in the database.
+# FIXME: We can be more flexible here. And try match insensitive to case
+sited <- site.info$site
+mysite <- as.character(sited[grep("Barro", sited, ignore.case = TRUE)])
+mysite
+#> [1] "barro colorado island"
+
+prep <- data_preparation(site = mysite, stem = TRUE)
 #> Step 1: Data import done.
 #> Step 2: Data consolidation done.
 #> The reference dataset contains 16781 wood density values 
@@ -149,15 +143,7 @@ problems <- paste0(tmp, "/problems")
 prep_3 <- data_preparation(
   site = "barro colorado island",
   stem = TRUE,
-  taper_correction = TRUE,
-  fill_missing = TRUE,
-  use_palm_allometry = TRUE,
-  flag_stranglers = TRUE,
-  dbh_stranglers = 500,
-  maxrel = 0.2,
   write_errors_to = errors,
-  DATA_path = NULL,
-  exclude_interval = NULL,
   graph_problems_to = problems
 )
 #> Step 1: Data import done.

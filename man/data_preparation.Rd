@@ -64,15 +64,6 @@ errors in CTFS-formated data.
 data_preparation(
   DATA_path = agb_example("data"),
   site = "barro colorado island",
-  stem = TRUE,
-  taper_correction = TRUE,
-  fill_missing = TRUE,
-  use_palm_allometry = TRUE,
-  flag_stranglers = TRUE,
-  dbh_stranglers = 500,
-  maxrel = 0.2,
-  write_errors_to = NULL,
-  exclude_interval = NULL,
-  graph_problems_to = NULL
+  stem = TRUE
 )
 }
