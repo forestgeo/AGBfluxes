@@ -1,7 +1,7 @@
-#' CTFS-formated data preparation.
+#' ForestGEO-like data preparation.
 #'
 #' Main routine to format, detect major obvious errors, and gap-fill those
-#' errors in CTFS-formated data.
+#' errors in ForestGEO-like data.
 #'
 #' @param path String giving a path to a parent directory containing species
 #'   and census datasets.
@@ -27,11 +27,11 @@
 #'   productivity, applied as `absval(individual-tree-productivity) > maxrel *
 #'   (average-productivity-per-hectare)`.
 #' @param write_errors_to A string giving a directory with the format
-#'   "path/to/file" (without extention) to output all records for trees with
+#'   "path/to/file" (without extension) to output all records for trees with
 #'   major errors in productivity to a csv file. Defaults to not write such a
 #'   file.
 #' @param graph_problems_to A string giving a directory with the format
-#'   "path/to/file" (without extention) to output graphs showing problematic
+#'   "path/to/file" (without extension) to output graphs showing problematic
 #'   trees. The output may be multiple files, for example:
 #'   path/to/file_1.pdf,path/to/file_2.pdf, path/to/file_3.pdf, and so on.
 #'   Defaults to not write such files.
@@ -639,7 +639,7 @@ assignAGB <- function(DAT, site, DBH = NULL, H = NULL) {
 #' @param dbh_stranglers (optional) Minimal diameter (in mm) of strangler figs,
 #'   default = 500.
 #'
-#' @return A formated data.table.
+#' @return A ForestGEO-like data.table.
 #' @keywords internal
 #' @noRd
 format_interval <- function(df,

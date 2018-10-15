@@ -2,7 +2,7 @@
 % Please edit documentation in R/data_preparation.R
 \name{data_preparation}
 \alias{data_preparation}
-\title{CTFS-formated data preparation.}
+\title{ForestGEO-like data preparation.}
 \usage{
 data_preparation(path, stem, site, dbh_units = "mm", WD = NULL,
   taper_correction = TRUE, fill_missing = TRUE,
@@ -45,12 +45,12 @@ default = 500.}
 productivity, applied as \code{absval(individual-tree-productivity) > maxrel * (average-productivity-per-hectare)}.}
 
 \item{write_errors_to}{A string giving a directory with the format
-"path/to/file" (without extention) to output all records for trees with
+"path/to/file" (without extension) to output all records for trees with
 major errors in productivity to a csv file. Defaults to not write such a
 file.}
 
 \item{graph_problems_to}{A string giving a directory with the format
-"path/to/file" (without extention) to output graphs showing problematic
+"path/to/file" (without extension) to output graphs showing problematic
 trees. The output may be multiple files, for example:
 path/to/file_1.pdf,path/to/file_2.pdf, path/to/file_3.pdf, and so on.
 Defaults to not write such files.}
@@ -64,7 +64,7 @@ A data.table (data.frame) with all relevant variables.
 }
 \description{
 Main routine to format, detect major obvious errors, and gap-fill those
-errors in CTFS-formated data.
+errors in ForestGEO-like data.
 }
 \examples{
 data_preparation(
