@@ -3,11 +3,12 @@
 #' Main routine to format, detect major obvious errors, and gap-fill those
 #' errors in CTFS-formated data.
 #'
-#' @param site The full name of your site (in lower case); e.g., 'barro colorado
-#'   island' (TODO: Do you need to clarify that this should be a valid value
-#'   of `site.info$site`?).
-#' @param stem `TRUE` or `FALSE`, using the stem data (`stem = TRUE`) rather
-#'   than the tree data (i.e. called 'full', `stem = FALSE`).
+#' @param path String giving a path to a parent directory containing species
+#'   and census datasets.
+#' @param stem `TRUE`(default) or `FALSE` reflect that your censuses are
+#'   ForestGEO `stem` or `tree` (aka `full`) tables, respectively.
+#' @param site String giving the name of your site -- one of one of
+#'   `site.info$site` (e.g., 'barro colorado island'.
 #' @param dbh_units set the unit ("mm" or "cm") of DBH values, by default
 #'   dbh_units=="mm".
 #' @param WD Optional, provide an external data.frame of wood densities by
@@ -29,7 +30,11 @@
 #'   "path/to/file" (without extention) to output all records for trees with
 #'   major errors in productivity to a csv file. Defaults to not write such a
 #'   file.
-#' @param DATA_path The pathname where the data are located.
+#' @param graph_problems_to A string giving a directory with the format
+#'   "path/to/file" (without extention) to output graphs showing problematic
+#'   trees. The output may be multiple files, for example:
+#'   path/to/file_1.pdf,path/to/file_2.pdf, path/to/file_3.pdf, and so on.
+#'   Defaults to not write such files.
 #' @param exclude_interval `NULL` by default. If needed a vector (e.g. c(1,2))
 #'   indicating which census interval(s) must be discarded from computation due,
 #'   for instance, to a change in measurement protocol.
@@ -40,12 +45,12 @@
 #'
 #' @examples
 #' data_preparation(
-#'   DATA_path = agb_example("data"),
+#'   path = agb_example("data"),
 #'   site = "barro colorado island",
 #'   stem = TRUE
 #' )
-data_preparation <- function(stem,
-                             DATA_path = NULL,
+data_preparation <- function(path,
+                             stem,
                              site,
                              dbh_units = "mm",
                              WD = NULL,
@@ -56,8 +61,8 @@ data_preparation <- function(stem,
                              dbh_stranglers = 500,
                              maxrel = 0.2,
                              write_errors_to = NULL,
-                             exclude_interval = NULL,
-                             graph_problems_to = NULL) {
+                             graph_problems_to = NULL,
+                             exclude_interval = NULL) {
   # TODO: Rename data_preparation() to prepare_data()
 
   # site <- tolower(site)
@@ -68,21 +73,6 @@ data_preparation <- function(stem,
   # if (is.na(INDEX)) {
   #   stop("Site name should be one of the following: \n", paste(levels(factor(site.info$site)), collapse = " - "))
   # }
-  # TODO: Remove this if (): Make `DATA_path` the first argument with no default
-  if (is.null(DATA_path)) {
-    path_folder <- getwd()
-    # TODO: Is the double assignment intentional? (i.e`<<-` instead of `<-`)
-    DATA_path <<- paste0(path_folder, "/data/")
-  }
-  # # TODO: Replace `DATA_path` by `.data`: A list of datasets.
-  # # TODO: Write a helper that creates the list of datasets given a path.
-  # file_names <- list.files(paste0(getwd(),"/data/"))
-  # lapply(file_names,load,function(x) paste0(getwd(),"/data/",x))  # doesn't work
-  # for (i in 1:length( file_names))
-  # {
-  #   load(paste0(getwd(),"/data/",file_names[i]))
-  # }
-  ## For sake of simplicity, we point toward the data stored in "data" folder (see above for automation)
   site <- tolower(site)
   INDEX <- match(tolower(site), site.info$site)
   if (is.na(INDEX)) {
@@ -93,9 +83,8 @@ data_preparation <- function(stem,
     )
   }
 
-  DATA_path <- paste0(getwd(), "/data/")
   path_folder <- getwd()
-  files <- list.files(DATA_path)
+  files <- list.files(path)
   # TODO: Relying on string matching might be dangerous.
   ifelse(
     stem,
@@ -103,19 +92,11 @@ data_preparation <- function(stem,
     files <- files[grep("full", files)]
   )
 
-  # # TODO: Why not output a list of objects instead of files in a directory?
-  # ifelse(
-  #   # FIXME: path_folder is undefined if user provide DATA_path, so this fails.
-  #   #   Define `path_folder` here again, or add argument `output_path`?
-  #   !dir.exists(file.path(paste0(path_folder, "/output"))),
-  #   dir.create(file.path(paste0(path_folder, "/output"))),
-  #   FALSE
-  # )
-
   # Create the receiving data.frame
   nms <- c(
-    "treeID", "stemID", "tag", "StemTag", "sp", "quadrat", "gx", "gy", "dbh", "hom",
-    "ExactDate", "DFstatus", "codes", "date", "status", "CensusID", "year"
+    "treeID", "stemID", "tag", "StemTag", "sp", "quadrat", "gx", "gy", "dbh",
+    "hom", "ExactDate", "DFstatus", "codes", "date", "status", "CensusID",
+    "year"
   )
   # FIXME: Growing an object can be terribly slow. Instead of creating a dataframe
   # with one row you should create a dataframe with as many rows as you need.
@@ -127,7 +108,7 @@ data_preparation <- function(stem,
   # TODO: see seq_along()
   for (i in 1:length(files)) {
     # TODO: Again, this could be avoided if the censues come in a `.data` list
-    temp <- data.table::setDT(LOAD(paste(DATA_path, files[i], sep = "/")))
+    temp <- data.table::setDT(LOAD(paste(path, files[i], sep = "/")))
     temp$CensusID <- i
 
     # TODO: Too-long line. Need a meaningfully-named intermediary variable?
@@ -173,7 +154,10 @@ data_preparation <- function(stem,
   # TODO: Reorder to match formals:
   #   df, use_palm_allometry, DBH = NULL, WD = NULL, H = NULL
   # FIXME: This fails because WD can't be found.
-  df <- compute_agb(df, WD = WD, H = NULL, site = site, use_palm_allometry)
+  df <- compute_agb(
+    df, WD = WD, H = NULL, site = site, use_palm_allometry,
+    path = path
+  )
 
   message("Step 3: AGB calculation done.")
 
@@ -440,13 +424,10 @@ compute_agb <- function(df,
                         DBH = NULL,
                         WD = NULL,
                         H = NULL,
-                        site) {
-  if (!exists("DATA_path")) {
-    # TODO: `<<-` is dangerous. Are you sure you need it?
-    DATA_path <<- paste0(path_folder, "/data/")
-  }
+                        site,
+                        path) {
   # Allocate wood density
-  df <- assignWD(df, site = site, WD = WD)
+  df <- assignWD(df, site = site, WD = WD, path = path)
 
 
   # Compute biomass
@@ -462,7 +443,7 @@ compute_agb <- function(df,
     # meaningful_name <- complicated-statement-you-need-insidge-if
     # if (meaningful_name) ...
     if (is.na(match("family", tolower(names(df))))) {
-      SP <- LOAD(paste0(DATA_path, list.files(DATA_path)[grep("spptable", list.files(DATA_path))]))
+      SP <- LOAD(paste0(path, list.files(path)[grep("spptable", list.files(path))]))
       trim <- function(x) gsub("^\\s+|\\s+$", "", x)
       SP$genus <- trim(substr(SP$Latin, 1, regexpr(" ", SP$Latin)))
       SP$species <- trim(substr(SP$Latin, regexpr(" ", SP$Latin), 50))
@@ -496,13 +477,16 @@ compute_agb <- function(df,
 #' @return A data.table (data.frame) with all relevant variables.
 #' @keywords internal
 #' @noRd
-assignWD <- function(DAT, site, WD = NULL) {
-  if (is.null(DATA_path)) {
-    DATA_path <<- paste0(path_folder, "/data/")
-  }
+assignWD <- function(DAT, site, WD = NULL, path) {
 
   # Add genus & species to data
-  SP <- LOAD(paste(DATA_path, list.files(DATA_path)[grep("spptable", list.files(DATA_path))], sep = "/"))
+  SP <- LOAD(
+    paste(
+      path,
+      list.files(path)[grep("spptable", list.files(path))],
+      sep = "/"
+    )
+  )
   # FIXME: Replace subset() with `[`. See ?subset():
   # > Warning: This is a convenience function intended for use interactively.
   # For programming it is better to use the standard subsetting functions like

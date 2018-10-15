@@ -2,6 +2,5 @@
 
 export(agb_example)
 export(data_preparation)
-export(list_data)
 import(BIOMASS)
 import(data.table)

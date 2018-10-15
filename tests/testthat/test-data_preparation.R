@@ -1,6 +1,7 @@
 context("data_preparation")
 
 prep <- data_preparation(
+  path = agb_example("data"),
   site = "barro colorado island",
   stem = TRUE,
   taper_correction = TRUE,
@@ -10,9 +11,8 @@ prep <- data_preparation(
   dbh_stranglers = 500,
   maxrel = 0.2,
   write_errors_to = NULL,
-  DATA_path = NULL,
-  exclude_interval = NULL,
-  graph_problems_to = NULL
+  graph_problems_to = NULL,
+  exclude_interval = NULL
 )
 
 nms <- c(
@@ -39,7 +39,11 @@ describe("data_preparation", {
   })
 
   it("works with minimum mandatory argumets", {
-    out <- data_preparation(site = "barro colorado island", stem = TRUE)
+    out <- data_preparation(
+      path = agb_example("data"),
+      site = "barro colorado island",
+      stem = TRUE
+    )
     expect_is(out, "data.frame")
     expect_named(out, nms)
   })

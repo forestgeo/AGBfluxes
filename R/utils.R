@@ -13,28 +13,6 @@ receiving_df <- function(.names) {
   stats::setNames(data.frame(na), .names)
 }
 
-
-
-# TODO: Move to its own file and test.
-
-#' Create a list from all .rda files in a parent directory.
-#'
-#' @param parent String giving the parent directory containing .rda files.
-#'
-#' @return A list where each element is the object stores in one .rda file
-#'   stored in `parent`.
-#'
-#' @export
-#'
-#' @examples
-#' parent <- agb_example("data")
-#' str(list_data(parent), list.len = 3)
-list_data <- function(parent) {
-  lapply( fs::dir_ls(parent), function(x) get(load(x)))
-}
-
-
-
 # TODO: Move to its own file and test.
 
 #' Path to directory containing example data.

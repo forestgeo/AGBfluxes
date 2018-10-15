@@ -4,21 +4,21 @@
 \alias{data_preparation}
 \title{CTFS-formated data preparation.}
 \usage{
-data_preparation(stem, DATA_path = NULL, site, dbh_units = "mm",
-  WD = NULL, taper_correction = TRUE, fill_missing = TRUE,
+data_preparation(path, stem, site, dbh_units = "mm", WD = NULL,
+  taper_correction = TRUE, fill_missing = TRUE,
   use_palm_allometry = TRUE, flag_stranglers = TRUE,
   dbh_stranglers = 500, maxrel = 0.2, write_errors_to = NULL,
-  exclude_interval = NULL, graph_problems_to = NULL)
+  graph_problems_to = NULL, exclude_interval = NULL)
 }
 \arguments{
-\item{stem}{\code{TRUE} or \code{FALSE}, using the stem data (\code{stem = TRUE}) rather
-than the tree data (i.e. called 'full', \code{stem = FALSE}).}
+\item{path}{String giving a path to a parent directory containing species
+and census datasets.}
 
-\item{DATA_path}{The pathname where the data are located.}
+\item{stem}{\code{TRUE}(default) or \code{FALSE} reflect that your censuses are
+ForestGEO \code{stem} or \code{tree} (aka \code{full}) tables, respectively.}
 
-\item{site}{The full name of your site (in lower case); e.g., 'barro colorado
-island' (TODO: Do you need to clarify that this should be a valid value
-of \code{site.info$site}?).}
+\item{site}{String giving the name of your site -- one of one of
+\code{site.info$site} (e.g., 'barro colorado island'.}
 
 \item{dbh_units}{set the unit ("mm" or "cm") of DBH values, by default
 dbh_units=="mm".}
@@ -49,6 +49,12 @@ productivity, applied as \code{absval(individual-tree-productivity) > maxrel * (
 major errors in productivity to a csv file. Defaults to not write such a
 file.}
 
+\item{graph_problems_to}{A string giving a directory with the format
+"path/to/file" (without extention) to output graphs showing problematic
+trees. The output may be multiple files, for example:
+path/to/file_1.pdf,path/to/file_2.pdf, path/to/file_3.pdf, and so on.
+Defaults to not write such files.}
+
 \item{exclude_interval}{\code{NULL} by default. If needed a vector (e.g. c(1,2))
 indicating which census interval(s) must be discarded from computation due,
 for instance, to a change in measurement protocol.}
@@ -62,7 +68,7 @@ errors in CTFS-formated data.
 }
 \examples{
 data_preparation(
-  DATA_path = agb_example("data"),
+  path = agb_example("data"),
   site = "barro colorado island",
   stem = TRUE
 )

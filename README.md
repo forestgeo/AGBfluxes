@@ -29,14 +29,13 @@ method.
 ``` r
 library(AGBfluxes)
 
-# Make sure the name of your site is as in the database.
-# FIXME: We can be more flexible here. And try match insensitive to case
-sited <- site.info$site
-mysite <- as.character(sited[grep("Barro", sited, ignore.case = TRUE)])
-mysite
-#> [1] "barro colorado island"
+path <- agb_example("data")
+dir(path)
+#> [1] "bci.spptable.rda"  "bci_stem_1995.rda" "bci_stem_2000.rda"
+#> [4] "bci_stem_2005.rda"
 
-prep <- data_preparation(site = mysite, stem = TRUE)
+# Make sure the name of your `site` is one of `site.info$site`
+prep <- data_preparation(path, site = "barro colorado island", stem = TRUE)
 #> Step 1: Data import done.
 #> Step 2: Data consolidation done.
 #> The reference dataset contains 16781 wood density values 
@@ -141,8 +140,7 @@ problems <- paste0(tmp, "/problems")
 # problems <- "results/problems"
 
 prep_3 <- data_preparation(
-  site = "barro colorado island",
-  stem = TRUE,
+  path, site = "barro colorado island", stem = TRUE,
   write_errors_to = errors,
   graph_problems_to = problems
 )
