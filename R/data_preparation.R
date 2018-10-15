@@ -1054,7 +1054,7 @@ check_status <- function(DT) {
 LOAD <- function(saveFile) {
   env <- new.env()
   load(saveFile, envir = env)
-  loadedObjects <- objects(env, all = TRUE)
+  loadedObjects <- objects(env, all.names = TRUE)
   stopifnot(length(loadedObjects) == 1)
   env[[loadedObjects]]
 }
