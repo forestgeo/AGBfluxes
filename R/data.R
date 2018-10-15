@@ -55,15 +55,3 @@ NULL
 #' @examples
 #' str(WSG)
 "WSG"
-
-#' Dryad Wood Density Data from BIOMASS pckg
-#'
-#' @examples
-#' str(wdData)
-"wdData"
-
-#' Dryad Wood Density Data standard deviation from BIOMASS pckg
-#'
-#' @examples
-#' str(sd_10)
-"sd_10"
