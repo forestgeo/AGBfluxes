@@ -532,7 +532,7 @@ assignWD <- function(DAT, site, WD = NULL) {
     # TODO: Sure you need invisible? What are you trying to accomplish?
     # Maybe you mean to use suppressMessages() or suppressWarnings()?
     # TODO: Replace "A" by a more informative name.
-    A <- invisible(BIOMASS::getWoodDensity(
+    A <- invisible(getWoodDensity(
         SP$Genus,
         SP$Species,
         stand = rep(site, nrow(SP)),
@@ -542,7 +542,7 @@ assignWD <- function(DAT, site, WD = NULL) {
     )
   } else {
     A <- invisible(
-      BIOMASS::getWoodDensity(
+      getWoodDensity(
         SP$Genus,
         SP$Species,
         stand = rep(site, nrow(SP)),

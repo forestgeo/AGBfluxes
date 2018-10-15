@@ -40,5 +40,10 @@ data_preparation(
   exclude_interval = NULL
 )
 #> Step 1: Data import done.
-#> Error in consolidate_data(df, dbh_units, taper_correction, fill_missing, : unused argument (stem)
+#> Step 2: Data consolidation done.
+#> The reference dataset contains 16781 wood density values 
+#> Your taxonomic table contains 1040 taxa
+#> Step 3: AGB calculation done.
+#> Step 4: Formating intervals done.
+#> Error in utils::menu(c("Y", "N"), title = paste("There are", length(ID), : menu() cannot be used non-interactively
 ```
