@@ -51,7 +51,7 @@
 #' )
 data_preparation <- function(site,
                              stem,
-                             dbh_units="mm",
+                             dbh_units = "mm",
                              WD = NULL,
                              taper_correction,
                              fill_missing,
@@ -93,7 +93,8 @@ data_preparation <- function(site,
   if (is.na(INDEX)) {
     stop(
       "Site name should be one of the following: \n",
-      paste(levels(factor(site.info$site)), collapse = " - "), call. = FALSE
+      paste(levels(factor(site.info$site)), collapse = " - "),
+      call. = FALSE
     )
   }
 
@@ -118,8 +119,8 @@ data_preparation <- function(site,
 
   # Create the receiving data.frame
   nms <- c(
-    "treeID", "stemID","tag","StemTag","sp", "quadrat", "gx","gy", "dbh", "hom",
-    "ExactDate", "DFstatus","codes","date", "status","CensusID", "year"
+    "treeID", "stemID", "tag", "StemTag", "sp", "quadrat", "gx", "gy", "dbh", "hom",
+    "ExactDate", "DFstatus", "codes", "date", "status", "CensusID", "year"
   )
   # FIXME: Growing an object can be terribly slow. Instead of creating a dataframe
   # with one row you should create a dataframe with as many rows as you need.
@@ -144,7 +145,8 @@ data_preparation <- function(site,
       stop(
         # TODO: glue::glue() and friends help write more readable error messages
         paste0(
-          "The data must have a column named ", names(df)[ID], collapse = " - "
+          "The data must have a column named ", names(df)[ID],
+          collapse = " - "
         ),
         call. = FALSE
       )
@@ -170,13 +172,13 @@ data_preparation <- function(site,
 
   # TODO: Rename to correct_data()?
   #   But what does it mean to correct data? What columns of df are affected?
-  df <- consolidate_data(df, dbh_units,taper_correction, fill_missing, stem)
+  df <- consolidate_data(df, dbh_units, taper_correction, fill_missing, stem)
 
 
   # TODO: Reorder to match formals:
   #   df, use_palm_allometry, DBH = NULL, WD = NULL, H = NULL
   # FIXME: This fails because WD can't be found.
-  df <- compute_agb(df, WD = WD, H = NULL, site=site,use_palm_allometry)
+  df <- compute_agb(df, WD = WD, H = NULL, site = site, use_palm_allometry)
 
   message("Step 3: AGB calculation done.")
 
@@ -194,7 +196,7 @@ data_preparation <- function(site,
   )
   message("Step 5: Errors flagged.")
 
-  DF[order(year,treeID)]
+  DF[order(year, treeID)]
 }
 
 
@@ -240,7 +242,7 @@ data_preparation <- function(site,
 #'
 #' @keywords internal
 #' @noRd
-consolidate_data <- function(df, dbh_units,taper_correction, fill_missing, stem) {
+consolidate_data <- function(df, dbh_units, taper_correction, fill_missing, stem) {
   if (stem) {
     df[, "id" := paste(treeID, stemID, sep = "-")] # creat a unique tree-stem ID
     df <- df[order(id, CensusID)]
@@ -299,9 +301,9 @@ consolidate_data <- function(df, dbh_units,taper_correction, fill_missing, stem)
   df <- df[!treeID %in% NO.MEASURE$treeID[NO.MEASURE$V1]]
 
   # Check that DBHs are in mm
-  if (dbh_units=="cm") {
-  df[, c("dbh", "dbh2") := list(dbh*10,dbh2*10)]
-    }
+  if (dbh_units == "cm") {
+    df[, c("dbh", "dbh2") := list(dbh * 10, dbh2 * 10)]
+  }
   message("Step 2: Data consolidation done.")
 
   df
@@ -439,21 +441,21 @@ correctDBH <- function(DT, taper_correction, fill_missing) {
 #' @keywords internal
 #' @noRd
 compute_agb <- function(df,
-                       use_palm_allometry,
-                       DBH = NULL,
-                       WD = NULL,
-                       H = NULL,
-                       site) {
+                        use_palm_allometry,
+                        DBH = NULL,
+                        WD = NULL,
+                        H = NULL,
+                        site) {
   if (!exists("DATA_path")) {
     # TODO: `<<-` is dangerous. Are you sure you need it?
     DATA_path <<- paste0(path_folder, "/data/")
   }
   # Allocate wood density
-  df <- assignWD(df, site=site, WD=WD)
+  df <- assignWD(df, site = site, WD = WD)
 
 
   # Compute biomass
-  df <- assignAGB(df, site=site, DBH = DBH, H = H)
+  df <- assignAGB(df, site = site, DBH = DBH, H = H)
 
   # Compute biomass for palms
   if (use_palm_allometry) {
@@ -533,13 +535,13 @@ assignWD <- function(DAT, site, WD = NULL) {
     # Maybe you mean to use suppressMessages() or suppressWarnings()?
     # TODO: Replace "A" by a more informative name.
     A <- invisible(getWoodDensity(
-        SP$Genus,
-        SP$Species,
-        stand = rep(site, nrow(SP)),
-        family = NULL,
-        region = "World",
-        addWoodDensityData = wsg)
-    )
+      SP$Genus,
+      SP$Species,
+      stand = rep(site, nrow(SP)),
+      family = NULL,
+      region = "World",
+      addWoodDensityData = wsg
+    ))
   } else {
     A <- invisible(
       getWoodDensity(
@@ -573,10 +575,10 @@ assignWD <- function(DAT, site, WD = NULL) {
   # }
   if (any(is.na(DT$wsg))) {
     message(paste0(
-        "There are ", nrow(DT[is.na(wsg)]),
-        " individuals without WD values. Plot-average value (",
-        round(mean(DT$wsg, na.rm = T), 2), ") was assigned."
-      ))
+      "There are ", nrow(DT[is.na(wsg)]),
+      " individuals without WD values. Plot-average value (",
+      round(mean(DT$wsg, na.rm = T), 2), ") was assigned."
+    ))
 
     DT <- within(DT, wsg[is.na(wsg)] <- mean(wsg, na.rm = T))
   }
@@ -631,7 +633,8 @@ assignAGB <- function(DAT, site, DBH = NULL, H = NULL) {
       # places. You may wrap it in a helper: `collapse_levels("site")`
       stop(
         "Site name should be one of the following: \n",
-        paste(levels(factor(site.info$site)), collapse = " - "), call. = FALSE
+        paste(levels(factor(site.info$site)), collapse = " - "),
+        call. = FALSE
       )
     }
     E <- site.info$E[INDEX]
@@ -668,9 +671,9 @@ format_interval <- function(df,
 
   # Receiveing data set
   nms <- c(
-    "treeID", "dbh1", "dbhc1",  "status1", "code1",  "hom1",  "sp", "wsg",
-    "agb1", "date1",  "dbh2",  "dbhc2", "status2",  "code2", "hom2", "agb2",
-    "date2",  "broken",  "agbl",  "agb1.surv", "interval", "year"
+    "treeID", "dbh1", "dbhc1", "status1", "code1", "hom1", "sp", "wsg",
+    "agb1", "date1", "dbh2", "dbhc2", "status2", "code2", "hom2", "agb2",
+    "date2", "broken", "agbl", "agb1.surv", "interval", "year"
   )
   # FIXME: Growing an object can be terribly slow. Instead of creating a
   # dataframe with one row you should create a dataframe with as many rows as
@@ -856,21 +859,27 @@ flag_errors <- function(DF,
 
       GRAPH[[i]] <- ggplot2::ggplot(X, ggplot2::aes(x = y1, y = dbhc1)) +
         ggplot2::geom_point(size = 2) +
-        ggplot2::geom_segment(data = Y,
+        ggplot2::geom_segment(
+          data = Y,
           ggplot2::aes(x = y1, y = dbhc1, xend = year, yend = dbhc2, linetype = as.factor(line))
         ) +
         ggplot2::geom_point(data = X[point == 1], ggplot2::aes(x = year, y = dbhc2), col = 2) +
         ggplot2::labs(title = paste0(unique(X$name), " (", ID[n], ")"), x = " ", y = "dbh (mm)") +
-        ggplot2::geom_text(data = Y,
+        ggplot2::geom_text(
+          data = Y,
           ggplot2::aes(x = y1, y = dbh1 - (0.05 * dbh1)), label = round(Y$hom1, 2), cex = CX
         ) +
-        ggplot2::geom_text(data = YY,
-          ggplot2::aes(x = year, y = d02 - (0.05 * d02)), label = round(YY$hom2, 2), cex = CX) +
-        ggplot2::geom_text(data = Y,
+        ggplot2::geom_text(
+          data = YY,
+          ggplot2::aes(x = year, y = d02 - (0.05 * d02)), label = round(YY$hom2, 2), cex = CX
+        ) +
+        ggplot2::geom_text(
+          data = Y,
           ggplot2::aes(x = year, y = 0.3 * max(dbhc2)), label = Y$dbh1, cex = CX,
           angle = 90, vjust = 1
         ) +
-        ggplot2::geom_text(data = YY,
+        ggplot2::geom_text(
+          data = YY,
           ggplot2::aes(x = year, y = 0.3 * max(d2)),
           label = YY$d02, cex = CX, angle = 90, vjust = 1
         ) +
@@ -1209,8 +1218,10 @@ create_quad <- function(census, grid_size, x = "gx", y = "gy", fit.in.plot) {
     stop(
       paste(
         "Quadrat numbering error: expected ", n_quadrat, " quadrats; got ",
-        max(census$quad, na.rm = T), sep = "")
+        max(census$quad, na.rm = T),
+        sep = ""
       )
+    )
   }
   census$centroX <- (floor(x1 / grid_size) * grid_size) + (grid_size / 2)
   census$centroY <- (floor(y1 / grid_size) * grid_size) + (grid_size / 2)

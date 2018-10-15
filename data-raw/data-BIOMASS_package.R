@@ -23,8 +23,6 @@ usethis::use_data(
   param_7,
   sd_10,
   wdData,
-
   internal = TRUE,
   overwrite = TRUE
 )
-

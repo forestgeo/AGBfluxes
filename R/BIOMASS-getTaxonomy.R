@@ -6,31 +6,31 @@
 #'
 #' @keywords internal
 #' @noRd
-getTaxonomy <- function(genus, findOrder = FALSE)
-{
+getTaxonomy <- function(genus, findOrder = FALSE) {
   ### Find the family (and the order) of a vector of genus
 
   ################## 1. Retrieve the Family
   # Create ids
-  inputGenus <- data.frame(id = 1:length(genus), inputGenus = as.character(genus),
-                           stringsAsFactors = FALSE)
+  inputGenus <- data.frame(
+    id = 1:length(genus), inputGenus = as.character(genus),
+    stringsAsFactors = FALSE
+  )
 
   # Merge the input genera with the genus family table
   # `genusFamily` is internal data.
   genusFam <- unique(merge(inputGenus, genusFamily, by.x = "inputGenus", by.y = "genus", all.x = TRUE))
 
   # Sort data by id
-  genusFam <- genusFam[order(genusFam$id),]
+  genusFam <- genusFam[order(genusFam$id), ]
 
   ################## 2. Retrieve the Order
 
-  if(findOrder == TRUE)
-  {
+  if (findOrder == TRUE) {
     tmp <- unique(genusFam[, c("inputGenus", "family")])
     # `apgFamilies` is internal data
     tmpOrder <- unique(merge(tmp, apgFamilies, by.x = "family", by.y = "famAPG", all.x = TRUE))
 
-    for(f in unique(tmpOrder$family))
+    for (f in unique(tmpOrder$family))
       genusFam$order[genusFam$family %in% f] <- unique(tmpOrder$order[tmpOrder$family %in% f])
   }
 

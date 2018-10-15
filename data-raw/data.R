@@ -14,7 +14,5 @@ use_data(
   site.info,
   WSG,
   df,
-
   overwrite = TRUE
 )
-

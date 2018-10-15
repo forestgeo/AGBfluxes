@@ -18,7 +18,8 @@ prep <- data_preparation(
 describe("data_preparation", {
   it("outputs known output", {
     expect_known_output(
-      as.data.frame(prep), "ref-data_preparation", update = FALSE, print = TRUE
+      as.data.frame(prep), "ref-data_preparation",
+      update = FALSE, print = TRUE
     )
   })
 
