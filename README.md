@@ -15,9 +15,9 @@ status](https://coveralls.io/repos/github/forestgeo/AGBfluxes/badge.svg)](https:
 This function works either at stem (stem=T) or tree (stem=F) levels, and works in 2 steps:
 
 ### A. Data correction
-a) compiles multiple censuses into a single file to,
-b) checks for consistency in stem/tree status (alive/dead) over time,
-c) (optional) fills gaps (i.e. missing DBHs or POM values) by simple linear interpolation (fill_missing=T),
+1. compiles multiple censuses into a single file to,
+2. checks for consistency in stem/tree status (alive/dead) over time,
+3. (optional) fills gaps (i.e. missing DBHs or POM values) by simple linear interpolation (fill_missing=T),
 d) (optional) corrects POM changes through application of a taper correction (taper_correction=T),
 e) estimates stem/tree above-ground dry biomass (AGB)
 
