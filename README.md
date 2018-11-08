@@ -14,7 +14,7 @@ status](https://coveralls.io/repos/github/forestgeo/AGBfluxes/badge.svg)](https:
 ## Main purposes
 This function works either at stem (stem=T) or tree (stem=F) levels, and works in 2 steps:
 
-### A. Data correction
+### A. Complementing data
 * compiles multiple censuses into a single file to,
 * checks for consistency in stem/tree status (alive/dead) over time,
 * (optional) fills gaps (i.e. missing DBHs or POM values) by simple linear interpolation (fill_missing=T),
@@ -22,7 +22,7 @@ This function works either at stem (stem=T) or tree (stem=F) levels, and works i
 * allocate wood density from CTFS wood density database and DRYAD
 * estimates stem/tree above-ground dry biomass (AGB)
 
-### B. Data formating
+### B. Formating data
 * merges information from stems to single tree for each census interval,
 * codes if a tree is recruited, alive, dead or broken/resprouted
 * computes annual **AGB productivity** (if alive), **ingrowth** (if recruited or resprouted) or **loss** (if dead) at tree-level
