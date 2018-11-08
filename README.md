@@ -11,6 +11,62 @@ status](https://www.r-pkg.org/badges/version/AGBfluxes)](https://cran.r-project.
 [![Coverage
 status](https://coveralls.io/repos/github/forestgeo/AGBfluxes/badge.svg)](https://coveralls.io/r/forestgeo/AGBfluxes?branch=master)
 
+## Main purposes
+This function works either at stem (stem=T) or tree (stem=F) levels, and works in 2 steps:
+
+### A. Data correction
+a) compiles multiple censuses into a single file to,
+b) checks for consistency in stem/tree status (alive/dead) over time,
+c) (optional) fills gaps (i.e. missing DBHs or POM values) by simple linear interpolation (fill_missing=T),
+d) (optional) corrects POM changes through application of a taper correction (taper_correction=T),
+e) estimates stem/tree above-ground dry biomass (AGB)
+
+### B. Data formating
+f) merges information from stems to single tree for each census interval,
+g) codes if a tree is recruited, alive, dead or broken/resprouted
+h) computes annual **AGB productivity** (if alive), **ingrowth** (if recruited or resprouted) or **loss** (if dead) at tree-level
+i) flags obvious measurement errors (annual AGB growth > X % (X = maxrel) of mean annual AGB growth across all census intervals)
+
+
+The function returns a data.frame where each row correspond to the initial and final measurments (i.e. DBH, POM, status) per **tree** for a given census intervals. Variables related to the initial and final census are denoted with **1** and **2**, respectively. Variable are defined as follow:
+
+| Variable | Definition
+---------- | -------------
+treeID     |  Unique tree ID
+dbh1       |  Measured dbh at intial census
+dbhc1      |  Corrected dbh at intial census
+status1    |  Status (alive/dead) at intial census
+code1      |  Original CTFS code at intial census
+hom1       |  Original height of measurement at intial census 
+sp         |  CTFS species name acronym
+wsg        |  Wood-density allocated at lowest taxonomic level
+agb1       |  Above-ground tree biomass estimate at initial census 
+date1      |  Date of census
+...        |
+broken     |  Has the main stem DBH > 10cm broken (i.e. AGB reduction > 20%)? 
+agbl       |  AGB loss due to main stem breakage
+agb1.surv  |  AGB of surving stems (if any) after main stem breakage
+interval   |  first, second, third... census interval
+year       |  Calendar year of census
+gx         |  X coordinate
+gy         |  Y coordinate
+quadrat    |  20x20m quadrat
+name       |  Genus and species
+ID         |  Concatenation of treeID and stem tag
+int        |  Census interval length in days
+code       |  Corrected tree status, can be: "A" = alive, "AC" = alive, with POM changed, "B" = broken, "Rsp" = resprouted, "R" = recruited or "D" = dead
+dHOM       |  hom2-hom1
+prod.g     |  annual AGB productivity for trees coded as "A" or "AC"
+prod.r     |  annual AGB productivity for trees coded as "Rsp" or "R"
+loss       |  annual AGB loss for trees coded as "B" or "D"
+ficus      |  Is that tree a large (DBH > 50cm) strangler fig?
+prod.rel   |  relative producitivity (prod.g/average-productivity-per-hectare)
+error      |  Is prod.rel > maxrel (1), or prod.rel < -maxrel (-1)
+error.loss |  Binary. Was that tree flagged as "error" prior to death?
+
+
+Resulting data set can further be used to compute AGB fluxes at a site (as described below). 
+
 ## Installation
 
 You can install the released version of AGBfluxes from
@@ -21,7 +77,9 @@ You can install the released version of AGBfluxes from
 devtools::install_github("AGBfluxes")
 ```
 
-## Example
+## Run 'data_preparation'
+
+(TO DO ER: How to locate raw data here?)
 
 `data_preparation()` outputs a data.table, which has a special `print()`
 method.
@@ -29,13 +87,31 @@ method.
 ``` r
 library(AGBfluxes)
 
-path <- agb_example("data")
-dir(path)
-#> [1] "bci.spptable.rda"  "bci_stem_1995.rda" "bci_stem_2000.rda"
-#> [4] "bci_stem_2005.rda"
+# Tell the function where to locate the data
+# DATA_path <- "~ path/to/your/data"
 
-# Make sure the name of your `site` is one of `site.info$site`
-prep <- data_preparation(path, site = "barro colorado island", stem = TRUE)
+# Check that all required files are listed. The 'data' folder should contain:
+1) the different stem/tree censuses described as: "site_stem1.Rdata" or "site_full1.Rdata" (for trees)
+2) a list of species encountered and the CTFS acronym used.
+
+list.files(DATA_path)
+
+# Set the different argument as desired (detailed in ?data_prepartion) and run the function
+
+DAT <- data_preparation(
+  site = "barro colorado island",
+  stem = TRUE,
+  taper_correction = TRUE,
+  fill_missing = TRUE,
+  use_palm_allometry = TRUE,
+  flag_stranglers = TRUE,
+  dbh_stranglers = 500,
+  maxrel = 0.2,
+  write_errors_to = NULL,
+  DATA_path = NULL,
+  exclude_interval = NULL,
+  graph_problems_to = NULL
+)
 #> Step 1: Data import done.
 #> Step 2: Data consolidation done.
 #> The reference dataset contains 16781 wood density values 
@@ -44,7 +120,7 @@ prep <- data_preparation(path, site = "barro colorado island", stem = TRUE)
 #> Step 4: Formating intervals done.
 #> Step 5: Errors flagged.
 
-head(prep)
+head(DAT)
 #>    treeID dbh1  dbhc1 status1  code1 hom1     sp       wsg       agb1
 #> 1:     19  298  310.8       A B;cylY  3.0 gustsu 0.5800000  0.6595199
 #> 2:     21  348  348.0       A   <NA>  1.3 virosu 0.4179091  0.6451540
@@ -85,8 +161,8 @@ head(prep)
 The output is of class “data.table”.
 
 ``` r
-class(prep)
-#> [1] "data.table" "data.frame"
+ df[treeID==212507]
+
 ```
 
 You can save the output to a csv file of your choice.
@@ -140,8 +216,17 @@ problems <- paste0(tmp, "/problems")
 # problems <- "results/problems"
 
 prep_3 <- data_preparation(
-  path, site = "barro colorado island", stem = TRUE,
+  site = "barro colorado island",
+  stem = TRUE,
+  taper_correction = TRUE,
+  fill_missing = TRUE,
+  use_palm_allometry = TRUE,
+  flag_stranglers = TRUE,
+  dbh_stranglers = 500,
+  maxrel = 0.2,
   write_errors_to = errors,
+  DATA_path = NULL,
+  exclude_interval = NULL,
   graph_problems_to = problems
 )
 #> Step 1: Data import done.
