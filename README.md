@@ -17,15 +17,15 @@ This function works either at stem (stem=T) or tree (stem=F) levels, and works i
 ### A. Data correction
 * a) compiles multiple censuses into a single file to,
 * b) checks for consistency in stem/tree status (alive/dead) over time,
-3. (optional) fills gaps (i.e. missing DBHs or POM values) by simple linear interpolation (fill_missing=T),
-d) (optional) corrects POM changes through application of a taper correction (taper_correction=T),
-e) estimates stem/tree above-ground dry biomass (AGB)
+* c) (optional) fills gaps (i.e. missing DBHs or POM values) by simple linear interpolation (fill_missing=T),
+* d) (optional) corrects POM changes through application of a taper correction (taper_correction=T),
+* e) estimates stem/tree above-ground dry biomass (AGB)
 
 ### B. Data formating
-f) merges information from stems to single tree for each census interval,
-g) codes if a tree is recruited, alive, dead or broken/resprouted
-h) computes annual **AGB productivity** (if alive), **ingrowth** (if recruited or resprouted) or **loss** (if dead) at tree-level
-i) flags obvious measurement errors (annual AGB growth > X % (X = maxrel) of mean annual AGB growth across all census intervals)
+* f) merges information from stems to single tree for each census interval,
+* g) codes if a tree is recruited, alive, dead or broken/resprouted
+* h) computes annual **AGB productivity** (if alive), **ingrowth** (if recruited or resprouted) or **loss** (if dead) at tree-level
+* i) flags obvious measurement errors (annual AGB growth > X % (X = maxrel) of mean annual AGB growth across all census intervals)
 
 
 The function returns a data.frame where each row correspond to the initial and final measurments (i.e. DBH, POM, status) per **tree** for a given census intervals. Variables related to the initial and final census are denoted with **1** and **2**, respectively. Variable are defined as follow:
@@ -66,6 +66,8 @@ error.loss |  Binary. Was that tree flagged as "error" prior to death?
 
 
 Resulting data set can further be used to compute AGB fluxes at a site (as described below). 
+[TO BE DONE]
+
 
 ## Installation
 
