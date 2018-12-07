@@ -1,18 +1,13 @@
-#' ForestGEO-like data preparation.
+#' CTFS-formated data preparation.
 #'
 #' Main routine to format, detect major obvious errors, and gap-fill those
-#' errors in ForestGEO-like data.
+#' errors in CTFS-formated data.
 #'
-#' @param path String giving a path to a parent directory containing species
-#'   and census datasets.
-#' @param stem `TRUE`(default) or `FALSE` reflect that your censuses are
-#'   ForestGEO `stem` or `tree` (aka `full`) tables, respectively.
-#' @param site String giving the name of your site -- one of one of
-#'   `site.info$site` (e.g., 'barro colorado island'.
-#' @param dbh_units set the unit ("mm" or "cm") of DBH values, by default
-#'   dbh_units=="mm".
-#' @param WD Optional, provide an external data.frame of wood densities by
-#'   species.
+#' @param site The full name of your site (in lower case); e.g., 'barro colorado
+#'   island'.
+#' @param stem `TRUE` or `FALSE`, using the stem data (`stem = TRUE`) rather
+#'   than the tree data (i.e. called 'full', `stem = FALSE`).
+#' @param dbh_units set the unit ("mm" or "cm") of DBH values, by default dbh_units=="mm"..
 #' @param taper_correction `TRUE` or `FALSE`, apply Cushman et al (2014) taper
 #'   correction.
 #' @param fill_missing `TRUE` or `FALSE`, interpolate missing DBH values.
@@ -26,15 +21,9 @@
 #' @param maxrel A numeric value: the threshold for flagging major errors in
 #'   productivity, applied as `absval(individual-tree-productivity) > maxrel *
 #'   (average-productivity-per-hectare)`.
-#' @param write_errors_to A string giving a directory with the format
-#'   "path/to/file" (without extension) to output all records for trees with
-#'   major errors in productivity to a csv file. Defaults to not write such a
-#'   file.
-#' @param graph_problems_to A string giving a directory with the format
-#'   "path/to/file" (without extension) to output graphs showing problematic
-#'   trees. The output may be multiple files, for example:
-#'   path/to/file_1.pdf,path/to/file_2.pdf, path/to/file_3.pdf, and so on.
-#'   Defaults to not write such files.
+#' @param output_errors `TRUE` or `FALSE`, output all records for trees with
+#'   major errors in productivity to a csv file.
+#' @param DATA_path The pathname where the data are located.
 #' @param exclude_interval `NULL` by default. If needed a vector (e.g. c(1,2))
 #'   indicating which census interval(s) must be discarded from computation due,
 #'   for instance, to a change in measurement protocol.
@@ -42,50 +31,33 @@
 #' @return A data.table (data.frame) with all relevant variables.
 #'
 #' @examples
+#' \dontrun{
 #' data_preparation(
-#'   path = agb_example("data"),
 #'   site = "barro colorado island",
-<<<<<<< HEAD:R/AGBfluxes_functions.R
 #'   stem = TRUE,
 #'   taper_correction = TRUE,
 #'   fill_missing = TRUE,
 #'   use_palm_allometry = TRUE,
 #'   flag_stranglers = TRUE,
 #'   dbh_stranglers = 500,
-#'   max_prod = 0.2,
+#'   maxrel = 0.2,
 #'   output_errors = TRUE,
 #'   DATA_path = NULL,
 #'   exclude_interval = NULL
-=======
-#'   stem = TRUE
->>>>>>> 60462c1e9e0c29e249a9ed3eab20999b6a93a366:R/data_preparation.R
 #' )
-data_preparation <- function(path,
+#' }
+data_preparation <- function(site,
                              stem,
-<<<<<<< HEAD:R/AGBfluxes_functions.R
-                              dbh_units="cm",
-                             use.CTFS.WD,
+                              dbh_units="mm",
+                             WD = NULL,
                              taper_correction,
                              fill_missing,
                              use_palm_allometry,
                              flag_stranglers,
                              dbh_stranglers,
-                             max_prod,
+                             maxrel,
                              output_errors,
                              DATA_path = NULL,
-=======
-                             site,
-                             dbh_units = "mm",
-                             WD = NULL,
-                             taper_correction = TRUE,
-                             fill_missing = TRUE,
-                             use_palm_allometry = TRUE,
-                             flag_stranglers = TRUE,
-                             dbh_stranglers = 500,
-                             maxrel = 0.2,
-                             write_errors_to = NULL,
-                             graph_problems_to = NULL,
->>>>>>> 60462c1e9e0c29e249a9ed3eab20999b6a93a366:R/data_preparation.R
                              exclude_interval = NULL) {
   # TODO: Rename data_preparation() to prepare_data()
 
@@ -97,18 +69,33 @@ data_preparation <- function(path,
   # if (is.na(INDEX)) {
   #   stop("Site name should be one of the following: \n", paste(levels(factor(site.info$site)), collapse = " - "))
   # }
+  # TODO: Remove this if (): Make `DATA_path` the first argument with no default
+  if (is.null(DATA_path)) {
+    path_folder <- getwd()
+    # TODO: Is the double assignment intentional? (i.e`<<-` instead of `<-`)
+    DATA_path <<- paste0(path_folder, "/data/")
+  }
+  # # TODO: Replace `DATA_path` by `.data`: A list of datasets.
+  # # TODO: Write a helper that creates the list of datasets given a path.
+  # file_names <- list.files(paste0(getwd(),"/data/"))
+  # lapply(file_names,load,function(x) paste0(getwd(),"/data/",x))  # doesn't work
+  # for (i in 1:length( file_names))
+  # {
+  #   load(paste0(getwd(),"/data/",file_names[i]))
+  # }
+  ## For sake of simplicity, we point toward the data stored in "data" folder (see above for automation)
   site <- tolower(site)
   INDEX <- match(tolower(site), site.info$site)
   if (is.na(INDEX)) {
     stop(
       "Site name should be one of the following: \n",
-      paste(levels(factor(site.info$site)), collapse = " - "),
-      call. = FALSE
+      paste(levels(factor(site.info$site)), collapse = " - "), call. = FALSE
     )
   }
 
+  DATA_path <- paste0(getwd(), "/data/")
   path_folder <- getwd()
-  files <- list.files(path)
+  files <- list.files(DATA_path)
   # TODO: Relying on string matching might be dangerous.
   ifelse(
     stem,
@@ -116,11 +103,19 @@ data_preparation <- function(path,
     files <- files[grep("full", files)]
   )
 
+  # # TODO: Why not output a list of objects instead of files in a directory?
+  # ifelse(
+  #   # FIXME: path_folder is undefined if user provide DATA_path, so this fails.
+  #   #   Define `path_folder` here again, or add argument `output_path`?
+  #   !dir.exists(file.path(paste0(path_folder, "/output"))),
+  #   dir.create(file.path(paste0(path_folder, "/output"))),
+  #   FALSE
+  # )
+
   # Create the receiving data.frame
   nms <- c(
-    "treeID", "stemID", "tag", "StemTag", "sp", "quadrat", "gx", "gy", "dbh",
-    "hom", "ExactDate", "DFstatus", "codes", "date", "status", "CensusID",
-    "year"
+    "treeID", "stemID","tag","StemTag","sp", "quadrat", "gx","gy", "dbh", "hom",
+    "ExactDate", "DFstatus","codes","date", "status","CensusID", "year"
   )
   # FIXME: Growing an object can be terribly slow. Instead of creating a dataframe
   # with one row you should create a dataframe with as many rows as you need.
@@ -132,7 +127,7 @@ data_preparation <- function(path,
   # TODO: see seq_along()
   for (i in 1:length(files)) {
     # TODO: Again, this could be avoided if the censues come in a `.data` list
-    temp <- data.table::setDT(LOAD(paste(path, files[i], sep = "/")))
+    temp <- data.table::setDT(LOAD(paste(DATA_path, files[i], sep = "/")))
     temp$CensusID <- i
 
     # TODO: Too-long line. Need a meaningfully-named intermediary variable?
@@ -145,8 +140,7 @@ data_preparation <- function(path,
       stop(
         # TODO: glue::glue() and friends help write more readable error messages
         paste0(
-          "The data must have a column named ", names(df)[ID],
-          collapse = " - "
+          "The data must have a column named ", names(df)[ID], collapse = " - "
         ),
         call. = FALSE
       )
@@ -157,59 +151,48 @@ data_preparation <- function(path,
     df <- rbind(df, temp)
   }
 
+  # TODO: No need to use `rm()` inside function.
+  rm(temp)
+  # TODO: Comment why the first row is useless. It's now obvious.
   df <- df[-1, ]
   message("Step 1: Data import done.")
 
+  # ID.TREE <- temp[status=="A"]$treeID[sample(1:nrow(temp[status=="A"]),10)]
+  # temp[treeID%in%ID.TREE]$dbh <- NA
+  # temp[treeID%in%ID.TREE]$hom <- NA
+  # bci_stem_2000 <- temp
+  # devtools::use_data(bci_stem_2000,overwrite = T)
 
-<<<<<<< HEAD:R/AGBfluxes_functions.R
-  # STEP 1: data consolidation
-  df <- consolidate_data(df, dbh_units,taper_correction, fill_missing, stem)
-=======
+
   # TODO: Rename to correct_data()?
   #   But what does it mean to correct data? What columns of df are affected?
-  df <- consolidate_data(df, dbh_units, taper_correction, fill_missing, stem)
->>>>>>> 60462c1e9e0c29e249a9ed3eab20999b6a93a366:R/data_preparation.R
+  df <- consolidate_data(df, dbh_units,taper_correction, fill_missing, stem)
 
-  # STEP 2: Compute AGB
-  df <- computeAGB(df, site,DBH=NULL,use.CTFS.WD = T , H = NULL, use_palm_allometry)
 
-<<<<<<< HEAD:R/AGBfluxes_functions.R
-  # STEP 3: Format intervals
-=======
   # TODO: Reorder to match formals:
   #   df, use_palm_allometry, DBH = NULL, WD = NULL, H = NULL
   # FIXME: This fails because WD can't be found.
-  df <- compute_agb(
-    df, WD = WD, H = NULL, site = site, use_palm_allometry,
-    path = path
-  )
+  df <- computeAGB(df, site,DBH=NULL,WD = WD, H = NULL, use_palm_allometry)
 
   message("Step 3: AGB calculation done.")
 
->>>>>>> 60462c1e9e0c29e249a9ed3eab20999b6a93a366:R/data_preparation.R
   DF <- format_interval(df, flag_stranglers, dbh_stranglers)
-
+  message("Step 4: Formating intervals done.")
 
   DF <- flag_errors(
     DF,
     site,
     flag_stranglers = flag_stranglers,
-<<<<<<< HEAD:R/AGBfluxes_functions.R
     max_prod =0.2,
     output_errors = output_errors,
     exclude_interval = exclude_interval
   )
+  message("Step 5: Errors flagged. Saving formated data into 'data' folder.")
 
-=======
-    maxrel = maxrel,
-    write_errors_to = write_errors_to,
-    exclude_interval = exclude_interval,
-    graph_problems_to = graph_problems_to
-  )
-  message("Step 5: Errors flagged.")
->>>>>>> 60462c1e9e0c29e249a9ed3eab20999b6a93a366:R/data_preparation.R
+  # TODO: Again, Why not output an object rather than write files?
+  save(DF, file = paste0(getwd(), "/data/", site, "_formated_data.Rdata"))
 
-  DF[order(year, treeID)]
+  DF[order(year,treeID)]
 }
 
 
@@ -255,7 +238,7 @@ data_preparation <- function(path,
 #'
 #' @keywords internal
 #' @noRd
-consolidate_data <- function(df, dbh_units, taper_correction, fill_missing, stem) {
+consolidate_data <- function(df, dbh_units,taper_correction, fill_missing, stem) {
   if (stem) {
     df[, "id" := paste(treeID, stemID, sep = "-")] # creat a unique tree-stem ID
     df <- df[order(id, CensusID)]
@@ -314,9 +297,9 @@ consolidate_data <- function(df, dbh_units, taper_correction, fill_missing, stem
   df <- df[!treeID %in% NO.MEASURE$treeID[NO.MEASURE$V1]]
 
   # Check that DBHs are in mm
-  if (dbh_units == "cm") {
-    df[, c("dbh", "dbh2") := list(dbh * 10, dbh2 * 10)]
-  }
+  if (dbh_units=="cm") {
+  df[, c("dbh", "dbh2") := list(dbh*10,dbh2*10)]
+    }
   message("Step 2: Data consolidation done.")
 
   df
@@ -452,11 +435,10 @@ correctDBH <- function(DT, taper_correction, fill_missing) {
 #' @return A data.table (data.frame) with all relevant variables.
 #' @keywords internal
 #' @noRd
-<<<<<<< HEAD:R/AGBfluxes_functions.R
 computeAGB <- function(df,
                        site,
                        DBH = NULL,
-                       use.CTFS.WD = T ,
+                       WD = NULL,
                        H = NULL,
                        use_palm_allometry) {
   if (!exists("DATA_path")) {
@@ -464,55 +446,12 @@ computeAGB <- function(df,
     DATA_path <<- paste0(path_folder, "/data/")
   }
   # Allocate wood density
-  df <- assignWD(df, site=site, use.CTFS.WD = use.CTFS.WD)
+  df <- assignWD(df, site=site, WD=WD)
 
 
   # Compute biomass
   df <- assignAGB(df, site=site, DBH = DBH, H = H,use_palm_allometry=use_palm_allometry)
 
-=======
-compute_agb <- function(df,
-                        use_palm_allometry,
-                        DBH = NULL,
-                        WD = NULL,
-                        H = NULL,
-                        site,
-                        path) {
-  # Allocate wood density
-  df <- assignWD(df, site = site, WD = WD, path = path)
-
-
-  # Compute biomass
-  df <- assignAGB(df, site = site, DBH = DBH, H = H)
-
-  # Compute biomass for palms
-  if (use_palm_allometry) {
-    agbPalm <- function(D) {
-      exp(-3.3488 + 2.7483 * log(D / 10) + ((0.588)^2) / 2) / 1000
-    }
-
-    # TODO: It's unclear what's going on inside if (). Try:
-    # meaningful_name <- complicated-statement-you-need-insidge-if
-    # if (meaningful_name) ...
-    if (is.na(match("family", tolower(names(df))))) {
-      SP <- LOAD(paste0(path, list.files(path)[grep("spptable", list.files(path))]))
-      trim <- function(x) gsub("^\\s+|\\s+$", "", x)
-      SP$genus <- trim(substr(SP$Latin, 1, regexpr(" ", SP$Latin)))
-      SP$species <- trim(substr(SP$Latin, regexpr(" ", SP$Latin), 50))
-      SP <- SP[, c("sp", "genus", "species", "Family")]
-      SP$name <- paste(SP$genus, SP$species, sep = " ")
-      names(SP) <- c("sp", "genus", "species", "Family", "name")
-      df <- merge(df, SP, by = "sp", all.x = T)
-      df["Family" == "Arecaceae", "agb" := agbPalm(dbh2)]
-    } else {
-      # TODO: It's usualy best to write the shortest condition first.
-      # See https://rstd.io/code-smells
-      df["Family" == "Arecaceae", "agb" := agbPalm(dbh2)]
-    }
-  }
->>>>>>> 60462c1e9e0c29e249a9ed3eab20999b6a93a366:R/data_preparation.R
-
-   message("Step 3: AGB calculation done.")
    df
 }
 
@@ -531,30 +470,13 @@ compute_agb <- function(df,
 #' @return A data.table (data.frame) with all relevant variables.
 #' @keywords internal
 #' @noRd
-<<<<<<< HEAD:R/AGBfluxes_functions.R
-assignWD <- function(DAT, site, use.CTFS.WD = T) {
+assignWD <- function(DAT, site, WD = NULL) {
   if (is.null(DATA_path)) {
     DATA_path <<- paste0(path_folder, "/data/")
   }
-  # if("wsg"%in%names(DAT)) {
-  #   A <- utils::menu(
-  #     c("Y", "N"),
-  #     title = "WD already present. Do you want to update those?"
-  #     )
-  # }
-  # if (A==T) {
-=======
-assignWD <- function(DAT, site, WD = NULL, path) {
 
->>>>>>> 60462c1e9e0c29e249a9ed3eab20999b6a93a366:R/data_preparation.R
   # Add genus & species to data
-  SP <- LOAD(
-    paste(
-      path,
-      list.files(path)[grep("spptable", list.files(path))],
-      sep = "/"
-    )
-  )
+  SP <- LOAD(paste(DATA_path, list.files(DATA_path)[grep("spptable", list.files(DATA_path))], sep = "/"))
   # FIXME: Replace subset() with `[`. See ?subset():
   # > Warning: This is a convenience function intended for use interactively.
   # For programming it is better to use the standard subsetting functions like
@@ -564,7 +486,7 @@ assignWD <- function(DAT, site, WD = NULL, path) {
   # TODO: Remove sep. paste() defaults to `sep = " "`.
   SP$name <- paste(SP$Genus, SP$Species, sep = " ")
 
-  if (use.CTFS.WD) {
+  if (is.null(WD)) {
     # Import & format CTFS wood data base
     # TODO: This approach makes code clearer. E.g.:
     # meaningful_name <- site.info$wsg.site.name[site.info$site == tolower(site)]
@@ -581,22 +503,23 @@ assignWD <- function(DAT, site, WD = NULL, path) {
     # TODO: Sure you need invisible? What are you trying to accomplish?
     # Maybe you mean to use suppressMessages() or suppressWarnings()?
     # TODO: Replace "A" by a more informative name.
-    A <- invisible(getWoodDensity(
-      SP$Genus,
-      SP$Species,
-      stand = rep(site, nrow(SP)),
-      family = NULL,
-      region = "World",
-      addWoodDensityData = wsg
-    ))
-  } else {
-    A <- invisible(
-      getWoodDensity(
+    A <- invisible(BIOMASS::getWoodDensity(
         SP$Genus,
         SP$Species,
         stand = rep(site, nrow(SP)),
         family = NULL,
-        region = "World"
+        region = "World",
+        addWoodDensityData = wsg)
+    )
+  } else {
+    A <- invisible(
+      BIOMASS::getWoodDensity(
+        SP$Genus,
+        SP$Species,
+        stand = rep(site, nrow(SP)),
+        family = NULL,
+        region = "World",
+        addWoodDensityData = WD
       )
     )
   }
@@ -607,9 +530,9 @@ assignWD <- function(DAT, site, WD = NULL, path) {
   SP <- unique(merge(SP, A[, c("name", "meanWD")], by = "name", all.x = T))
   names(SP) <- c("name", "sp", "genus", "species", "Family", "wsg")
   if (any(grep("name", names(DAT)))) {
-    DT <- merge(DAT[,-c("sp","wsg")], SP, by = "name", all.x = T)
+    DT <- merge(DAT, SP, by = "name", all.x = T)
   } else {
-    DT <- merge(DAT[,-c("wsg")], SP, by = "sp", all.x = T)
+    DT <- merge(DAT, SP, by = "sp", all.x = T)
   }
 
   # Allocate mean WD to species not in the list
@@ -621,18 +544,15 @@ assignWD <- function(DAT, site, WD = NULL, path) {
   # }
   if (any(is.na(DT$wsg))) {
     message(paste0(
-      "There are ", nrow(DT[is.na(wsg)]),
-      " individuals without WD values. Plot-average value (",
-      round(mean(DT$wsg, na.rm = T), 2), ") was assigned."
-    ))
+        "There are ", nrow(DT[is.na(wsg)]),
+        " individuals without WD values. Plot-average value (",
+        round(mean(DT$wsg, na.rm = T), 2), ") was assigned."
+      ))
 
     DT <- within(DT, wsg[is.na(wsg)] <- mean(wsg, na.rm = T))
   }
 
   DT
-  # } else {
-  #   DAT
-  # }
 }
 
 
@@ -683,8 +603,7 @@ assignAGB <- function(DAT, site, DBH = NULL, H = NULL,use_palm_allometry) {
       # places. You may wrap it in a helper: `collapse_levels("site")`
       stop(
         "Site name should be one of the following: \n",
-        paste(levels(factor(site.info$site)), collapse = " - "),
-        call. = FALSE
+        paste(levels(factor(site.info$site)), collapse = " - "), call. = FALSE
       )
     }
     E <- site.info$E[INDEX]
@@ -702,11 +621,7 @@ assignAGB <- function(DAT, site, DBH = NULL, H = NULL,use_palm_allometry) {
       exp(-3.3488 + 2.7483 * log(D / 10) + ((0.588)^2) / 2) / 1000
     }
 
-    # Assign medium DBH by stem by species
-    MED_DBH <- DAT[Family=="Arecaceae",median(dbh2,na.rm=T),by=name]
-    DAT[!is.na(dbh2),"dbh2":=ifelse(is.na(MED_DBH$V1[match(name,MED_DBH$name)]),dbh2,MED_DBH$V1[match(name,MED_DBH$name)])]
-
-  if (!is.na(match("family", tolower(names(DAT))))) {
+    if (!is.na(match("family", tolower(names(DAT))))) {
       DAT[Family == "Arecaceae", "agb" := agbPalm(dbh2)]
     } else {
       SP <- LOAD(paste0(DATA_path, list.files(DATA_path)[grep("spptable", list.files(DATA_path))]))
@@ -734,38 +649,25 @@ assignAGB <- function(DAT, site, DBH = NULL, H = NULL,use_palm_allometry) {
 #' @param dbh_stranglers (optional) Minimal diameter (in mm) of strangler figs,
 #'   default = 500.
 #'
-#' @return A ForestGEO-like data.table.
+#' @return A formated data.table.
 #' @keywords internal
 #' @noRd
 format_interval <- function(df,
                             flag_stranglers,
                             dbh_stranglers,
                             code.broken = NULL) {
-
-  YEAR <- sort(unique(df$year))
+  YEAR <- unique(df$year)
 
   # Receiveing data set
   nms <- c(
-<<<<<<< HEAD:R/AGBfluxes_functions.R
     "treeID", "dbh1", "dbhc1",  "status1", "code1",  "hom1",  "sp", "wsg",
-    "agb1", "date1", "Nstem1", "dbh2",  "dbhc2", "status2",  "code2", "hom2", "agb2",
-    "date2", "Nstem2", "broken",  "agbl",  "agb1.surv", "interval", "year"
-=======
-    "treeID", "dbh1", "dbhc1", "status1", "code1", "hom1", "sp", "wsg",
-    "agb1", "date1", "dbh2", "dbhc2", "status2", "code2", "hom2", "agb2",
-    "date2", "broken", "agbl", "agb1.surv", "interval", "year"
->>>>>>> 60462c1e9e0c29e249a9ed3eab20999b6a93a366:R/data_preparation.R
+    "agb1", "date1",  "dbh2",  "dbhc2", "status2",  "code2", "hom2", "agb2",
+    "date2",  "broken",  "agbl",  "agb1.surv", "interval", "year"
   )
   # FIXME: Growing an object can be terribly slow. Instead of creating a
   # dataframe with one row you should create a dataframe with as many rows as
   # you need.
   DF2 <- data.table::setDT(receiving_df(nms))
-
-   # Avoid missing HOM (30/11/2018)
-  MISS_HOM <- df[, .I[is.na(hom) & status1!="D"],]
-  HOM <- df[MISS_HOM-1,hom]
-  HOM[is.na(HOM)] <- 1.3  # assign 1.3 to missing values (if no previous value)
-  df <- within(df, hom[MISS_HOM] <- HOM) # replace missing HOM by previous one
 
   # 4 minutes to run
   for (j in 1:(length(YEAR) - 1)) {
@@ -775,27 +677,34 @@ format_interval <- function(df,
     # meaningfully named variable.
     A1 <- df[i1$V1, c("treeID", "dbh", "dbh2", "status1", "codes", "hom", "agb", "id", "sp", "wsg")]
     names(A1) <- c("treeID", "dbh1", "dbhc1", "status1", "code1", "hom1", "agb", "id1", "sp", "wsg")
-    B1 <- df[year == YEAR[j] & status1 != "D", list("agb1" = sum(agb, na.rm = T), "date1" = mean(date, na.rm = T),"Nstem1"=length(agb)), by = treeID]
+    B1 <- df[year == YEAR[j] & status1 != "D", list("agb1" = sum(agb, na.rm = T), "date1" = mean(date, na.rm = T)), by = treeID]
     BB <- merge(B1, A1, by = "treeID", all.x = T)
-    cens1 <- BB[, c("treeID", "dbh1", "dbhc1", "status1", "code1", "hom1", "agb", "id1", "sp", "wsg", "agb1", "date1","Nstem1")]
+    cens1 <- BB[, c("treeID", "dbh1", "dbhc1", "status1", "code1", "hom1", "agb", "id1", "sp", "wsg", "agb1", "date1")]
 
     i2 <- df[year == YEAR[j + 1] & status1 != "D", .I[which.max(dbh2)], by = treeID]
     A2 <- df[i2$V1, c("treeID", "dbh", "dbh2", "hom", "status1", "codes", "id")]
     names(A2) <- c("treeID", "dbh2", "dbhc2", "hom2", "status2", "code2", "id2")
-    B2 <- df[year == YEAR[j + 1], list("agb2" = sum(agb[status1 != "D"], na.rm = T), "date2" = mean(date, na.rm = T),"Nstem2"=length(agb[status1 != "D"])), by = treeID]
+    B2 <- df[year == YEAR[j + 1], list("agb2" = sum(agb[status1 != "D"], na.rm = T), "date2" = mean(date, na.rm = T)), by = treeID]
     BB2 <- merge(B2, A2, by = "treeID", all.x = T)
-    cens2 <- BB2[, c("treeID", "dbh2", "dbhc2", "status2", "code2", "hom2", "agb2", "date2", "Nstem2","id2")]
+    cens2 <- BB2[, c("treeID", "dbh2", "dbhc2", "status2", "code2", "hom2", "agb2", "date2", "id2")]
     cens2 <- within(cens2, status2[is.na(status2)] <- "D")
 
     ID <- data.table::setDT(data.frame(treeID = unique(c(cens1$treeID, cens2$treeID))))
     ID <- merge(ID, cens1, by = "treeID", all.x = T)
     ID <- merge(ID, cens2, by = "treeID", all.x = T)
 
-    # Process broken stems
-    ID[, "broken" := ifelse(dbhc2 / dbhc1 < 0.8 & dbhc1 > 100 & hom2 <= hom1, 1, 0)] # flag large broken main stems to be added to losses
+    ID[, "broken" := ifelse(id1 != id2 & dbhc2 / dbhc1 < 0.8 & sp != "oenoma" & dbhc1 > 100 & hom2 <= hom1, 1, 0)] # flag large broken main stems to be added to losses
     ID[broken == 1, "agbl" := agb]
     ID[broken == 1, "agb1.surv" := agb1 - agbl]
-
+    # ID$broken <- 0  ## when not flaggigng broken stems
+    # ID$agbl <- as.numeric(NA)  ## when not flaggigng broken stems
+    # ID$agb1.surv <- as.numeric(NA)  ## when not flaggigng broken stems
+    # if(exists("code.broken")) {
+    # 	idx <- ID[broken==1,.I[!grepl(paste0("\\b",code.broken,"\\b"),code2) ]]
+    # } else {
+    # 	idx <- ID[broken==1,.I[!grepl("\\bR\\b",code2) ]]
+    # }
+    # ID[broken==1,] <- within(ID[broken==1,],code2[idx] <- "broken")
     ID[, c("agb", "id1", "id2") := NULL]
     ID$interval <- j
     ID$year <- YEAR[j + 1]
@@ -816,12 +725,6 @@ format_interval <- function(df,
   DF2[, "ID" := paste(DF2$year, DF2$quadrat, sep = "-")]
   DF2 <- within(DF2, date1[is.na(date1)] <- DATE$date[match(DF2[is.na(date1), ID], DATE$ID2)])
   DF2 <- within(DF2, date2[is.na(date2)] <- DATE$date[match(DF2[is.na(date2), ID], DATE$ID1)])
-
-  if (any(is.na(DF2$date1))) {
-  DATE2 <- df[, .(date = mean(date, na.rm = T)), by = .(year)][order(year)]
-  DATE2[, "year2" := c(year[2:length(year)], NA)] # year of previous census
-  DF2 <- within(DF2, date1[is.na(date1)] <- DATE2$date[match(DF2[is.na(date1), year], DATE2$year2)])
-  }
   DF2$int <- (DF2$date2 - DF2$date1) / 365.5 # census interval in days
 
   # Update status for recruited trees
@@ -840,22 +743,13 @@ format_interval <- function(df,
 
   # Compute annualized fluxes
   # annual prod for alive trees & multi-stems
-  DF2[code %in% c("A", "AC"), prod.g := (agb2 - agb1) / int, by = treeID]
+  DF2[code %in% c("A", "AC", "B"), prod.g := (agb2 - agb1) / int, by = treeID]
   # annual prod for alive trees & multi-stems
-  DF2[code == "B", prod.g := ifelse(agb1.surv!=0,(agb2 - agb1.surv) / int,0), by = treeID]
+  DF2[code == "B", prod.g := (agb2 - agb1.surv) / int, by = treeID]
   # annual prod for resprouts and recruits
   DF2[code %in% c("R", "Rsp"), prod.r := agb2 / int, by = treeID]
   DF2[code == "D", agbl := agb1, by = treeID]
-  DF2[,loss := agbl / int, by = treeID] # annualized loss for dead trees
-
-  # Process multiple stems trees:
-  DF2[,"dN":=Nstem2 -Nstem1]
-  # allocate agb to losses if nstem2 - nstem1 <0
-  DF2 <- within(DF2,loss[dN<0 & Nstem1>1 & code%in% c("A", "AC")] <- abs(prod.g[dN<0 & Nstem1>1 & code%in% c("A", "AC")]))
-  DF2 <- within(DF2,prod.g[dN<0 & Nstem1>1 & code%in% c("A", "AC")] <- 0 )
-  # allocate agb to resprout if nstem2 - nstem1 > 0
-  DF2 <- within(DF2,prod.r[dN>0 & Nstem1>1 & code%in% c("A", "AC")] <- prod.g[dN>0 & Nstem1>1 & code%in% c("A", "AC")])
-  DF2 <- within(DF2,prod.g[dN>0 & Nstem1>1 & code%in% c("A", "AC")] <- 0 )
+  DF2[, loss := agbl / int, by = treeID] # annualized loss for dead trees
 
   # Flag large strangler figs
   if (flag_stranglers) {
@@ -867,7 +761,7 @@ format_interval <- function(df,
     }
     DF2 <- within(DF2, ficus[!is.na(FIC) & dbhc1 > dbh_stranglers] <- 1)
   }
-  DF2[, c("agbl", "agb1.surv","broken") := NULL]
+
   DF2
 }
 
@@ -878,22 +772,16 @@ format_interval <- function(df,
 #' (set by 'maxrel') of the mean productivity computed at a site. Additionnaly,
 #' flagged trees that died at next census interval are also flagged. Option to
 #' see DBH measurement (=draw.graph) of flagged trees or print a csv
-#' (write_errors_to) are given.
+#' (output_errors) are given.
 #'
 #' @param DF A data.table.
 #' @param site Provide the full name of your site (in lower case) i.e. 'barro
 #'   colorado island'.
 #' @param flag_stranglers, `TRUE` or `FALSE`, if `TRUE`  strangler figs tree are
 #'   flagged (upon a list to published soon).
-<<<<<<< HEAD:R/AGBfluxes_functions.R
 #' @param max_prod A value (between 0 and 1) corresponding the percentage over which relative
 #'   productivity is assumed to be too high. Relative productivity correspond to the ratio between tree productivity and the mean productivity across quadrats whit consistent measure over time (i.e. quadrats with changes in POM are excluded).
 #' @param output_errors `TRUE` or `FALSE`, output all records for trees with
-=======
-#' @param maxrel A numeric value setting the threshold over which relative
-#'   productivity is assumed to be too high (usually set at 20 percents).
-#' @param write_errors_to `TRUE` or `FALSE`, output all records for trees with
->>>>>>> 60462c1e9e0c29e249a9ed3eab20999b6a93a366:R/data_preparation.R
 #'   major errors in productivity to a csv file.
 #' @param exclude_interval A vector (i.e. c(1,2)) indicating if a set of census
 #'   intervals must be discarded from computation due for instance to a change
@@ -905,7 +793,6 @@ format_interval <- function(df,
 flag_errors <- function(DF,
                         site,
                         flag_stranglers,
-<<<<<<< HEAD:R/AGBfluxes_functions.R
                         max_prod,
                         output_errors,
                         exclude_interval) {
@@ -913,13 +800,6 @@ flag_errors <- function(DF,
     stop("You should specify a maximum relative productivity (max_prod)")
   }
   mean.prod <- determine_mean_prod(DF, flag_stranglers, exclude_interval)
-=======
-                        maxrel,
-                        write_errors_to,
-                        exclude_interval,
-                        graph_problems_to) {
-  mean.prod <- determine_mean_prod(DF, site, flag_stranglers, exclude_interval)
->>>>>>> 60462c1e9e0c29e249a9ed3eab20999b6a93a366:R/data_preparation.R
   DF[, prod.rel := as.numeric(NA), ]
   # relative contribution to average total productivity
   DF[, prod.rel := prod.g/ mean.prod]
@@ -943,8 +823,18 @@ flag_errors <- function(DF,
   # ID <- DF[error!=0 & !code%in%c("D","R"),nrow(.SD)>=1,by=treeID]
   # ID <- ID[V1==T,treeID]
   ID <- unique(DF[error != 0, treeID])
+  A <- utils::menu(
+    c("Y", "N"),
+    title = paste(
+      "There are",length(ID),
+      "trees with errors. Do you want to print",
+      round(length(ID)/15),"pages?"
+    )
+  )
 
-  if (!is.null(graph_problems_to)) { # Plot trees with large major error
+  ifelse(A == 1, graph_problem_trees <- T, graph_problem_trees <- F)
+
+  if (graph_problem_trees) { # Plot trees with large major error
     YEAR <- levels(factor(DF$year))
     CX <- 2
     a <- 0
@@ -971,7 +861,6 @@ flag_errors <- function(DF,
       Y$point <- 0
       Y$point[Y$error != 0] <- 1
 
-<<<<<<< HEAD:R/AGBfluxes_functions.R
       GRAPH[[i]] <- ggplot2::ggplot(X, aes(x = y1, y = dbhc1)) +
         geom_point(size = 2) +
         geom_segment(data = Y,
@@ -990,32 +879,6 @@ flag_errors <- function(DF,
         ) +
         geom_text(data = YY,
           aes(x = year, y = 0.3 * max(d2)),
-=======
-      GRAPH[[i]] <- ggplot2::ggplot(X, ggplot2::aes(x = y1, y = dbhc1)) +
-        ggplot2::geom_point(size = 2) +
-        ggplot2::geom_segment(
-          data = Y,
-          ggplot2::aes(x = y1, y = dbhc1, xend = year, yend = dbhc2, linetype = as.factor(line))
-        ) +
-        ggplot2::geom_point(data = X[point == 1], ggplot2::aes(x = year, y = dbhc2), col = 2) +
-        ggplot2::labs(title = paste0(unique(X$name), " (", ID[n], ")"), x = " ", y = "dbh (mm)") +
-        ggplot2::geom_text(
-          data = Y,
-          ggplot2::aes(x = y1, y = dbh1 - (0.05 * dbh1)), label = round(Y$hom1, 2), cex = CX
-        ) +
-        ggplot2::geom_text(
-          data = YY,
-          ggplot2::aes(x = year, y = d02 - (0.05 * d02)), label = round(YY$hom2, 2), cex = CX
-        ) +
-        ggplot2::geom_text(
-          data = Y,
-          ggplot2::aes(x = year, y = 0.3 * max(dbhc2)), label = Y$dbh1, cex = CX,
-          angle = 90, vjust = 1
-        ) +
-        ggplot2::geom_text(
-          data = YY,
-          ggplot2::aes(x = year, y = 0.3 * max(d2)),
->>>>>>> 60462c1e9e0c29e249a9ed3eab20999b6a93a366:R/data_preparation.R
           label = YY$d02, cex = CX, angle = 90, vjust = 1
         ) +
         theme(
@@ -1040,7 +903,7 @@ flag_errors <- function(DF,
         a <- a + 1
         ggplot2::ggsave(
           do.call(gridExtra::grid.arrange, GRAPH),
-          file = paste0(graph_problems_to, "_", a, ".pdf"),
+          file = paste0(getwd(), "/output/trees_with_major_errors_", a, ".pdf"),
           width = 29.7, height = 20.1, units = "cm"
         )
 
@@ -1059,8 +922,11 @@ flag_errors <- function(DF,
     )
   }
 
-  if (!is.null(write_errors_to) & length(ID) > 0) {
-    utils::write.csv(DF[treeID %in% ID], file = paste0(write_errors_to, ".csv"))
+  if (output_errors & length(ID) > 0) {
+    utils::write.csv(
+      DF[treeID %in% ID],
+      file = paste0(getwd(), "/output/trees_with_major_errors.csv")
+    )
   }
 
   # TODO: Functions should generally either return a plot or an object (e.g. DF)
@@ -1068,9 +934,7 @@ flag_errors <- function(DF,
   # which computes something and returns DF, and plot_flags(), which plots DF.
   # You can create a class "flags" and write an S3 method for plot() -- i.e.
   # plot.flags() -- so you get the plot with `plot(flag_errors())`.
-  DF[, c("prod.rel","ID") := NULL]
 
-  message("Step 5: Errors flagged. Saving formated data into 'data' folder.")
   DF
 } # end of major.error
 
@@ -1092,21 +956,20 @@ flag_errors <- function(DF,
 #' @keywords internal
 #' @noRd
 determine_mean_prod <- function(DF, flag_stranglers, exclude_interval) {
-  if (!"quad"%in%names(DF)){
   grid.size=10
   area =(grid.size^2)/(10000)
   DF <- create_quad(DF,grid.size,x="gx",y="gy",fit.in.plot=T)
-  }
+
   if (missing(exclude_interval)) {
     # TODO: Clarify what's going on here. You may need to extract functions and
     # write variables with meaningful names.
     ifelse(flag_stranglers,
-    PRODA  <- DF[ficus != 1,.(prod=sum(prod.g,na.rm=T)/area,dHOM=ifelse(any(abs(dHOM)>0.1,na.rm=T),1,0)),by=c("quad","year")][order(year)],
-    PRODA  <- DF[,.(prod=sum(prod.g,na.rm=T)/area,dHOM=ifelse(any(abs(dHOM)>0.1,na.rm=T),1,0)),by=c("quad","year")][order(year)])
+    PRODA  <- DF[ficus != 1,.(prod=sum(prod.g,na.rm=T)/area,dHOM=ifelse(any(abs(dHOM)>0.1),1,0)),by=c("quad","year")][order(year)],
+    PRODA  <- DF[,.(prod=sum(prod.g,na.rm=T)/area,dHOM=ifelse(any(abs(dHOM)>0.1),1,0)),by=c("quad","year")][order(year)])
     } else {
     ifelse(flag_stranglers,
-    PRODA  <- DF[ficus != 1 & !interval%in%c(exclude_interval),.(prod=sum(prod.g,na.rm=T)/area,dHOM=ifelse(any(abs(dHOM)>0.1,na.rm=T),1,0)),by=c("quad","year")][order(year)],
-    PRODA  <- DF[!interval%in%c(exclude_interval),.(prod=sum(prod.g,na.rm=T)/area,dHOM=ifelse(any(abs(dHOM)>0.1,na.rm=T),1,0)),by=c("quad","year")][order(year)])
+    PRODA  <- DF[ficus != 1 & !interval%in%c(exclude_interval),.(prod=sum(prod.g,na.rm=T)/area,dHOM=ifelse(any(abs(dHOM)>0.1),1,0)),by=c("quad","year")][order(year)],
+    PRODA  <- DF[!interval%in%c(exclude_interval),.(prod=sum(prod.g,na.rm=T)/area,dHOM=ifelse(any(abs(dHOM)>0.1),1,0)),by=c("quad","year")][order(year)])
     }
 
   mPROD <- PRODA[dHOM==0,mean(prod)]
@@ -1172,8 +1035,6 @@ check_status <- function(DT) {
     STAT <- rep("Dr", nrow(DT))
   } else if (any(is.na(DT$dbh)) | any(grep("\\bD\\b", DT$status))) { # look for dbh=NA or dead (D) status
     locA <- which(DT$status == "A" & !is.na(DT$dbh))
-    locD <- which(DT$status != "A" & is.na(DT$dbh))
-
     if (length(locA) != 0) {
       if (min(locA) > 1) {
         STAT[is.na(DT$dbh)][1:min(locA) - 1] <- "P"
@@ -1182,13 +1043,8 @@ check_status <- function(DT) {
         STAT[(max(locA) + 1)] <- "D"
       }
       if (max(locA) + 2 <= nrow(DT)) {
-        STAT[(max(locA) + 2):nrow(DT)] <- "Dr" # Dead replicated (to be discarded)
-      }
-      # # Broken stem/resprout
-      # if (length(locD)>0 & locD<nrow(DT)) {
-      # STAT[locD] <- "B"
-      # STAT[locD+1] <- "Rsp"
-      # }
+        STAT[(max(locA) + 2):nrow(DT)] <- "Dr"
+      } # Dead replicated (to be discarded)
     } # end of loca>0
   }
 
@@ -1220,7 +1076,7 @@ check_status <- function(DT) {
 LOAD <- function(saveFile) {
   env <- new.env()
   load(saveFile, envir = env)
-  loadedObjects <- objects(env, all.names = TRUE)
+  loadedObjects <- objects(env, all = TRUE)
   stopifnot(length(loadedObjects) == 1)
   env[[loadedObjects]]
 }
@@ -1275,6 +1131,26 @@ assign_status <- function(DT) {
 
   list(agbl, code, dHOM)
 }
+
+
+
+# FIXME: Can we remove this?
+# assign_status2 <- function(DT) {
+# 	code <- rep("A",nrow(DT))
+# 	code[DT$status1=="P"] <- "R"
+# 	code[is.na(DT$dbhc1) & DT$status2=="A" & code!="R"] <- "Rsp"  # resprouted trees poses a problem only the first year, are alive/dead after
+# 	code[DT$status2=="D"] <- "D"
+# 	if(any(code=="A")){
+# 		loc <- max(which(code%in%c("A","Rsp")))
+# 		if (any(code[1:loc]=="D")) {
+# 			code[which(code[1:loc]=="D")] <- "A"
+# 			dbh2
+# 		}}
+# 	dHOM <- DT$hom2 - DT$hom1
+# 	dHOM[is.na(dHOM)] <- 0
+# 	code[code=="A" & dHOM!=0] <- "AC" # trees with POM changed are not accounted for in productivity
+# 	return(list(code,dHOM))
+# }
 
 
 
@@ -1344,15 +1220,8 @@ create_quad <- function(census, grid_size, x = "gx", y = "gy", fit.in.plot) {
     # which defaults to `sep = ""`.
     stop(
         "Quadrat numbering error: expected ", n_quadrat, " quadrats; got ",
-<<<<<<< HEAD:R/AGBfluxes_functions.R
         max(census$quad, na.rm = T), sep = "")
 
-=======
-        max(census$quad, na.rm = T),
-        sep = ""
-      )
-    )
->>>>>>> 60462c1e9e0c29e249a9ed3eab20999b6a93a366:R/data_preparation.R
   }
   census$centroX <- (floor(x1 / grid_size) * grid_size) + (grid_size / 2)
   census$centroY <- (floor(y1 / grid_size) * grid_size) + (grid_size / 2)

@@ -1,11 +1,11 @@
 #' A concatenation of 3 mini "bci-stem_YEAR" datasets.
 #'
-#' `df` concatenates the 3 mini "bci-stem_YEAR" datasets. It avoids going
+#' `dfm` concatenates the 3 mini "bci-stem_YEAR" datasets. It avoids going
 #' through lines.
 #'
 #' @examples
-#' str(df)
-"df"
+#' str(dfm)
+"dfm"
 
 #' Species table from from Barro Colorado Island (BCI).
 #'
@@ -55,15 +55,3 @@ NULL
 #' @examples
 #' str(WSG)
 "WSG"
-
-#' Dryad Wood Density Data from BIOMASS pckg
-#'
-#' @examples
-#' str(wdData)
-"wdData"
-
-#' Dryad Wood Density Data standard deviation from BIOMASS pckg
-#'
-#' @examples
-#' str(sd_10)
-"sd_10"
