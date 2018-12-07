@@ -1,13 +1,18 @@
-#' CTFS-formated data preparation.
+#' ForestGEO-like data preparation.
 #'
 #' Main routine to format, detect major obvious errors, and gap-fill those
-#' errors in CTFS-formated data.
+#' errors in ForestGEO-like data.
 #'
-#' @param site The full name of your site (in lower case); e.g., 'barro colorado
-#'   island'.
-#' @param stem `TRUE` or `FALSE`, using the stem data (`stem = TRUE`) rather
-#'   than the tree data (i.e. called 'full', `stem = FALSE`).
-#' @param dbh_units set the unit ("mm" or "cm") of DBH values, by default dbh_units=="mm"..
+#' @param path String giving a path to a parent directory containing species
+#'   and census datasets.
+#' @param stem `TRUE`(default) or `FALSE` reflect that your censuses are
+#'   ForestGEO `stem` or `tree` (aka `full`) tables, respectively.
+#' @param site String giving the name of your site -- one of one of
+#'   `site.info$site` (e.g., 'barro colorado island'.
+#' @param dbh_units set the unit ("mm" or "cm") of DBH values, by default
+#'   dbh_units=="mm".
+#' @param WD Optional, provide an external data.frame of wood densities by
+#'   species.
 #' @param taper_correction `TRUE` or `FALSE`, apply Cushman et al (2014) taper
 #'   correction.
 #' @param fill_missing `TRUE` or `FALSE`, interpolate missing DBH values.
@@ -21,9 +26,15 @@
 #' @param maxrel A numeric value: the threshold for flagging major errors in
 #'   productivity, applied as `absval(individual-tree-productivity) > maxrel *
 #'   (average-productivity-per-hectare)`.
-#' @param output_errors `TRUE` or `FALSE`, output all records for trees with
-#'   major errors in productivity to a csv file.
-#' @param DATA_path The pathname where the data are located.
+#' @param write_errors_to A string giving a directory with the format
+#'   "path/to/file" (without extension) to output all records for trees with
+#'   major errors in productivity to a csv file. Defaults to not write such a
+#'   file.
+#' @param graph_problems_to A string giving a directory with the format
+#'   "path/to/file" (without extension) to output graphs showing problematic
+#'   trees. The output may be multiple files, for example:
+#'   path/to/file_1.pdf,path/to/file_2.pdf, path/to/file_3.pdf, and so on.
+#'   Defaults to not write such files.
 #' @param exclude_interval `NULL` by default. If needed a vector (e.g. c(1,2))
 #'   indicating which census interval(s) must be discarded from computation due,
 #'   for instance, to a change in measurement protocol.
@@ -33,33 +44,24 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
 #' data_preparation(
+#'   path = agb_example("data"),
 #'   site = "barro colorado island",
-#'   stem = TRUE,
-#'   taper_correction = TRUE,
-#'   fill_missing = TRUE,
-#'   use_palm_allometry = TRUE,
-#'   flag_stranglers = TRUE,
-#'   dbh_stranglers = 500,
-#'   maxrel = 0.2,
-#'   output_errors = TRUE,
-#'   DATA_path = NULL,
-#'   exclude_interval = NULL
+#'   stem = TRUE
 #' )
-#' }
-data_preparation <- function(site,
+data_preparation <- function(path,
                              stem,
-                              dbh_units="mm",
+                             site,
+                             dbh_units = "mm",
                              WD = NULL,
-                             taper_correction,
-                             fill_missing,
-                             use_palm_allometry,
-                             flag_stranglers,
-                             dbh_stranglers,
-                             maxrel,
-                             output_errors,
-                             DATA_path = NULL,
+                             taper_correction = TRUE,
+                             fill_missing = TRUE,
+                             use_palm_allometry = TRUE,
+                             flag_stranglers = TRUE,
+                             dbh_stranglers = 500,
+                             maxrel = 0.2,
+                             write_errors_to = NULL,
+                             graph_problems_to = NULL,
                              exclude_interval = NULL) {
   # TODO: Rename data_preparation() to prepare_data()
 
@@ -71,33 +73,18 @@ data_preparation <- function(site,
   # if (is.na(INDEX)) {
   #   stop("Site name should be one of the following: \n", paste(levels(factor(site.info$site)), collapse = " - "))
   # }
-  # TODO: Remove this if (): Make `DATA_path` the first argument with no default
-  if (is.null(DATA_path)) {
-    path_folder <- getwd()
-    # TODO: Is the double assignment intentional? (i.e`<<-` instead of `<-`)
-    DATA_path <<- paste0(path_folder, "/data/")
-  }
-  # # TODO: Replace `DATA_path` by `.data`: A list of datasets.
-  # # TODO: Write a helper that creates the list of datasets given a path.
-  # file_names <- list.files(paste0(getwd(),"/data/"))
-  # lapply(file_names,load,function(x) paste0(getwd(),"/data/",x))  # doesn't work
-  # for (i in 1:length( file_names))
-  # {
-  #   load(paste0(getwd(),"/data/",file_names[i]))
-  # }
-  ## For sake of simplicity, we point toward the data stored in "data" folder (see above for automation)
   site <- tolower(site)
   INDEX <- match(tolower(site), site.info$site)
   if (is.na(INDEX)) {
     stop(
       "Site name should be one of the following: \n",
-      paste(levels(factor(site.info$site)), collapse = " - "), call. = FALSE
+      paste(levels(factor(site.info$site)), collapse = " - "),
+      call. = FALSE
     )
   }
 
-  DATA_path <- paste0(getwd(), "/data/")
   path_folder <- getwd()
-  files <- list.files(DATA_path)
+  files <- list.files(path)
   # TODO: Relying on string matching might be dangerous.
   ifelse(
     stem,
@@ -105,19 +92,11 @@ data_preparation <- function(site,
     files <- files[grep("full", files)]
   )
 
-  # # TODO: Why not output a list of objects instead of files in a directory?
-  # ifelse(
-  #   # FIXME: path_folder is undefined if user provide DATA_path, so this fails.
-  #   #   Define `path_folder` here again, or add argument `output_path`?
-  #   !dir.exists(file.path(paste0(path_folder, "/output"))),
-  #   dir.create(file.path(paste0(path_folder, "/output"))),
-  #   FALSE
-  # )
-
   # Create the receiving data.frame
   nms <- c(
-    "treeID", "stemID","tag","StemTag","sp", "quadrat", "gx","gy", "dbh", "hom",
-    "ExactDate", "DFstatus","codes","date", "status","CensusID", "year"
+    "treeID", "stemID", "tag", "StemTag", "sp", "quadrat", "gx", "gy", "dbh",
+    "hom", "ExactDate", "DFstatus", "codes", "date", "status", "CensusID",
+    "year"
   )
   # FIXME: Growing an object can be terribly slow. Instead of creating a dataframe
   # with one row you should create a dataframe with as many rows as you need.
@@ -129,7 +108,7 @@ data_preparation <- function(site,
   # TODO: see seq_along()
   for (i in 1:length(files)) {
     # TODO: Again, this could be avoided if the censues come in a `.data` list
-    temp <- data.table::setDT(LOAD(paste(DATA_path, files[i], sep = "/")))
+    temp <- data.table::setDT(LOAD(paste(path, files[i], sep = "/")))
     temp$CensusID <- i
 
     # TODO: Too-long line. Need a meaningfully-named intermediary variable?
@@ -142,7 +121,8 @@ data_preparation <- function(site,
       stop(
         # TODO: glue::glue() and friends help write more readable error messages
         paste0(
-          "The data must have a column named ", names(df)[ID], collapse = " - "
+          "The data must have a column named ", names(df)[ID],
+          collapse = " - "
         ),
         call. = FALSE
       )
@@ -168,13 +148,16 @@ data_preparation <- function(site,
 
   # TODO: Rename to correct_data()?
   #   But what does it mean to correct data? What columns of df are affected?
-  df <- consolidate_data(df, dbh_units,taper_correction, fill_missing, stem)
+  df <- consolidate_data(df, dbh_units, taper_correction, fill_missing, stem)
 
 
   # TODO: Reorder to match formals:
   #   df, use_palm_allometry, DBH = NULL, WD = NULL, H = NULL
   # FIXME: This fails because WD can't be found.
-  df <- compute_agb(df, WD = WD, H = NULL, site=site,use_palm_allometry)
+  df <- compute_agb(
+    df, WD = WD, H = NULL, site = site, use_palm_allometry,
+    path = path
+  )
 
   message("Step 3: AGB calculation done.")
 
@@ -186,15 +169,13 @@ data_preparation <- function(site,
     site,
     flag_stranglers = flag_stranglers,
     maxrel = maxrel,
-    output_errors = output_errors,
-    exclude_interval = exclude_interval
+    write_errors_to = write_errors_to,
+    exclude_interval = exclude_interval,
+    graph_problems_to = graph_problems_to
   )
-  message("Step 5: Errors flagged. Saving formated data into 'data' folder.")
+  message("Step 5: Errors flagged.")
 
-  # TODO: Again, Why not output an object rather than write files?
-  save(DF, file = paste0(getwd(), "/data/", site, "_formated_data.Rdata"))
-
-  DF[order(year,treeID)]
+  DF[order(year, treeID)]
 }
 
 
@@ -240,7 +221,7 @@ data_preparation <- function(site,
 #'
 #' @keywords internal
 #' @noRd
-consolidate_data <- function(df, dbh_units,taper_correction, fill_missing, stem) {
+consolidate_data <- function(df, dbh_units, taper_correction, fill_missing, stem) {
   if (stem) {
     df[, "id" := paste(treeID, stemID, sep = "-")] # creat a unique tree-stem ID
     df <- df[order(id, CensusID)]
@@ -299,9 +280,9 @@ consolidate_data <- function(df, dbh_units,taper_correction, fill_missing, stem)
   df <- df[!treeID %in% NO.MEASURE$treeID[NO.MEASURE$V1]]
 
   # Check that DBHs are in mm
-  if (dbh_units=="cm") {
-  df[, c("dbh", "dbh2") := list(dbh*10,dbh2*10)]
-    }
+  if (dbh_units == "cm") {
+    df[, c("dbh", "dbh2") := list(dbh * 10, dbh2 * 10)]
+  }
   message("Step 2: Data consolidation done.")
 
   df
@@ -439,21 +420,18 @@ correctDBH <- function(DT, taper_correction, fill_missing) {
 #' @keywords internal
 #' @noRd
 compute_agb <- function(df,
-                       use_palm_allometry,
-                       DBH = NULL,
-                       WD = NULL,
-                       H = NULL,
-                       site) {
-  if (!exists("DATA_path")) {
-    # TODO: `<<-` is dangerous. Are you sure you need it?
-    DATA_path <<- paste0(path_folder, "/data/")
-  }
+                        use_palm_allometry,
+                        DBH = NULL,
+                        WD = NULL,
+                        H = NULL,
+                        site,
+                        path) {
   # Allocate wood density
-  df <- assignWD(df, site=site, WD=WD)
+  df <- assignWD(df, site = site, WD = WD, path = path)
 
 
   # Compute biomass
-  df <- assignAGB(df, site=site, DBH = DBH, H = H)
+  df <- assignAGB(df, site = site, DBH = DBH, H = H)
 
   # Compute biomass for palms
   if (use_palm_allometry) {
@@ -465,7 +443,7 @@ compute_agb <- function(df,
     # meaningful_name <- complicated-statement-you-need-insidge-if
     # if (meaningful_name) ...
     if (is.na(match("family", tolower(names(df))))) {
-      SP <- LOAD(paste0(DATA_path, list.files(DATA_path)[grep("spptable", list.files(DATA_path))]))
+      SP <- LOAD(paste0(path, list.files(path)[grep("spptable", list.files(path))]))
       trim <- function(x) gsub("^\\s+|\\s+$", "", x)
       SP$genus <- trim(substr(SP$Latin, 1, regexpr(" ", SP$Latin)))
       SP$species <- trim(substr(SP$Latin, regexpr(" ", SP$Latin), 50))
@@ -499,13 +477,16 @@ compute_agb <- function(df,
 #' @return A data.table (data.frame) with all relevant variables.
 #' @keywords internal
 #' @noRd
-assignWD <- function(DAT, site, WD = NULL) {
-  if (is.null(DATA_path)) {
-    DATA_path <<- paste0(path_folder, "/data/")
-  }
+assignWD <- function(DAT, site, WD = NULL, path) {
 
   # Add genus & species to data
-  SP <- LOAD(paste(DATA_path, list.files(DATA_path)[grep("spptable", list.files(DATA_path))], sep = "/"))
+  SP <- LOAD(
+    paste(
+      path,
+      list.files(path)[grep("spptable", list.files(path))],
+      sep = "/"
+    )
+  )
   # FIXME: Replace subset() with `[`. See ?subset():
   # > Warning: This is a convenience function intended for use interactively.
   # For programming it is better to use the standard subsetting functions like
@@ -532,17 +513,17 @@ assignWD <- function(DAT, site, WD = NULL) {
     # TODO: Sure you need invisible? What are you trying to accomplish?
     # Maybe you mean to use suppressMessages() or suppressWarnings()?
     # TODO: Replace "A" by a more informative name.
-    A <- invisible(BIOMASS::getWoodDensity(
-        SP$Genus,
-        SP$Species,
-        stand = rep(site, nrow(SP)),
-        family = NULL,
-        region = "World",
-        addWoodDensityData = wsg)
-    )
+    A <- invisible(getWoodDensity(
+      SP$Genus,
+      SP$Species,
+      stand = rep(site, nrow(SP)),
+      family = NULL,
+      region = "World",
+      addWoodDensityData = wsg
+    ))
   } else {
     A <- invisible(
-      BIOMASS::getWoodDensity(
+      getWoodDensity(
         SP$Genus,
         SP$Species,
         stand = rep(site, nrow(SP)),
@@ -573,10 +554,10 @@ assignWD <- function(DAT, site, WD = NULL) {
   # }
   if (any(is.na(DT$wsg))) {
     message(paste0(
-        "There are ", nrow(DT[is.na(wsg)]),
-        " individuals without WD values. Plot-average value (",
-        round(mean(DT$wsg, na.rm = T), 2), ") was assigned."
-      ))
+      "There are ", nrow(DT[is.na(wsg)]),
+      " individuals without WD values. Plot-average value (",
+      round(mean(DT$wsg, na.rm = T), 2), ") was assigned."
+    ))
 
     DT <- within(DT, wsg[is.na(wsg)] <- mean(wsg, na.rm = T))
   }
@@ -631,7 +612,8 @@ assignAGB <- function(DAT, site, DBH = NULL, H = NULL) {
       # places. You may wrap it in a helper: `collapse_levels("site")`
       stop(
         "Site name should be one of the following: \n",
-        paste(levels(factor(site.info$site)), collapse = " - "), call. = FALSE
+        paste(levels(factor(site.info$site)), collapse = " - "),
+        call. = FALSE
       )
     }
     E <- site.info$E[INDEX]
@@ -657,7 +639,7 @@ assignAGB <- function(DAT, site, DBH = NULL, H = NULL) {
 #' @param dbh_stranglers (optional) Minimal diameter (in mm) of strangler figs,
 #'   default = 500.
 #'
-#' @return A formated data.table.
+#' @return A ForestGEO-like data.table.
 #' @keywords internal
 #' @noRd
 format_interval <- function(df,
@@ -668,9 +650,9 @@ format_interval <- function(df,
 
   # Receiveing data set
   nms <- c(
-    "treeID", "dbh1", "dbhc1",  "status1", "code1",  "hom1",  "sp", "wsg",
-    "agb1", "date1",  "dbh2",  "dbhc2", "status2",  "code2", "hom2", "agb2",
-    "date2",  "broken",  "agbl",  "agb1.surv", "interval", "year"
+    "treeID", "dbh1", "dbhc1", "status1", "code1", "hom1", "sp", "wsg",
+    "agb1", "date1", "dbh2", "dbhc2", "status2", "code2", "hom2", "agb2",
+    "date2", "broken", "agbl", "agb1.surv", "interval", "year"
   )
   # FIXME: Growing an object can be terribly slow. Instead of creating a
   # dataframe with one row you should create a dataframe with as many rows as
@@ -780,7 +762,7 @@ format_interval <- function(df,
 #' (set by 'maxrel') of the mean productivity computed at a site. Additionnaly,
 #' flagged trees that died at next census interval are also flagged. Option to
 #' see DBH measurement (=draw.graph) of flagged trees or print a csv
-#' (output_errors) are given.
+#' (write_errors_to) are given.
 #'
 #' @param DF A data.table.
 #' @param site Provide the full name of your site (in lower case) i.e. 'barro
@@ -789,7 +771,7 @@ format_interval <- function(df,
 #'   flagged (upon a list to published soon).
 #' @param maxrel A numeric value setting the threshold over which relative
 #'   productivity is assumed to be too high (usually set at 20 percents).
-#' @param output_errors `TRUE` or `FALSE`, output all records for trees with
+#' @param write_errors_to `TRUE` or `FALSE`, output all records for trees with
 #'   major errors in productivity to a csv file.
 #' @param exclude_interval A vector (i.e. c(1,2)) indicating if a set of census
 #'   intervals must be discarded from computation due for instance to a change
@@ -802,8 +784,9 @@ flag_errors <- function(DF,
                         site,
                         flag_stranglers,
                         maxrel,
-                        output_errors,
-                        exclude_interval) {
+                        write_errors_to,
+                        exclude_interval,
+                        graph_problems_to) {
   mean.prod <- determine_mean_prod(DF, site, flag_stranglers, exclude_interval)
   DF[, prod.rel := as.numeric(NA), ]
   # relative contribution to average total productivity
@@ -825,18 +808,8 @@ flag_errors <- function(DF,
   # ID <- DF[error!=0 & !code%in%c("D","R"),nrow(.SD)>=1,by=treeID]
   # ID <- ID[V1==T,treeID]
   ID <- unique(DF[error != 0, treeID])
-  A <- utils::menu(
-    c("Y", "N"),
-    title = paste(
-      "There are",length(ID),
-      "trees with errors. Do you want to print",
-      round(length(ID)/15),"pages?"
-    )
-  )
 
-  ifelse(A == 1, graph_problem_trees <- T, graph_problem_trees <- F)
-
-  if (graph_problem_trees) { # Plot trees with large major error
+  if (!is.null(graph_problems_to)) { # Plot trees with large major error
     YEAR <- levels(factor(DF$year))
     CX <- 2
     a <- 0
@@ -865,21 +838,27 @@ flag_errors <- function(DF,
 
       GRAPH[[i]] <- ggplot2::ggplot(X, ggplot2::aes(x = y1, y = dbhc1)) +
         ggplot2::geom_point(size = 2) +
-        ggplot2::geom_segment(data = Y,
+        ggplot2::geom_segment(
+          data = Y,
           ggplot2::aes(x = y1, y = dbhc1, xend = year, yend = dbhc2, linetype = as.factor(line))
         ) +
         ggplot2::geom_point(data = X[point == 1], ggplot2::aes(x = year, y = dbhc2), col = 2) +
         ggplot2::labs(title = paste0(unique(X$name), " (", ID[n], ")"), x = " ", y = "dbh (mm)") +
-        ggplot2::geom_text(data = Y,
+        ggplot2::geom_text(
+          data = Y,
           ggplot2::aes(x = y1, y = dbh1 - (0.05 * dbh1)), label = round(Y$hom1, 2), cex = CX
         ) +
-        ggplot2::geom_text(data = YY,
-          ggplot2::aes(x = year, y = d02 - (0.05 * d02)), label = round(YY$hom2, 2), cex = CX) +
-        ggplot2::geom_text(data = Y,
+        ggplot2::geom_text(
+          data = YY,
+          ggplot2::aes(x = year, y = d02 - (0.05 * d02)), label = round(YY$hom2, 2), cex = CX
+        ) +
+        ggplot2::geom_text(
+          data = Y,
           ggplot2::aes(x = year, y = 0.3 * max(dbhc2)), label = Y$dbh1, cex = CX,
           angle = 90, vjust = 1
         ) +
-        ggplot2::geom_text(data = YY,
+        ggplot2::geom_text(
+          data = YY,
           ggplot2::aes(x = year, y = 0.3 * max(d2)),
           label = YY$d02, cex = CX, angle = 90, vjust = 1
         ) +
@@ -905,7 +884,7 @@ flag_errors <- function(DF,
         a <- a + 1
         ggplot2::ggsave(
           do.call(gridExtra::grid.arrange, GRAPH),
-          file = paste0(getwd(), "/output/trees_with_major_errors_", a, ".pdf"),
+          file = paste0(graph_problems_to, "_", a, ".pdf"),
           width = 29.7, height = 20.1, units = "cm"
         )
 
@@ -924,11 +903,8 @@ flag_errors <- function(DF,
     )
   }
 
-  if (output_errors & length(ID) > 0) {
-    utils::write.csv(
-      DF[treeID %in% ID],
-      file = paste0(getwd(), "/output/trees_with_major_errors.csv")
-    )
+  if (!is.null(write_errors_to) & length(ID) > 0) {
+    utils::write.csv(DF[treeID %in% ID], file = paste0(write_errors_to, ".csv"))
   }
 
   # TODO: Functions should generally either return a plot or an object (e.g. DF)
@@ -1078,7 +1054,7 @@ check_status <- function(DT) {
 LOAD <- function(saveFile) {
   env <- new.env()
   load(saveFile, envir = env)
-  loadedObjects <- objects(env, all = TRUE)
+  loadedObjects <- objects(env, all.names = TRUE)
   stopifnot(length(loadedObjects) == 1)
   env[[loadedObjects]]
 }
@@ -1221,8 +1197,10 @@ create_quad <- function(census, grid_size, x = "gx", y = "gy", fit.in.plot) {
     stop(
       paste(
         "Quadrat numbering error: expected ", n_quadrat, " quadrats; got ",
-        max(census$quad, na.rm = T), sep = "")
+        max(census$quad, na.rm = T),
+        sep = ""
       )
+    )
   }
   census$centroX <- (floor(x1 / grid_size) * grid_size) + (grid_size / 2)
   census$centroY <- (floor(y1 / grid_size) * grid_size) + (grid_size / 2)

@@ -31,27 +31,80 @@ devtools::install_github("AGBfluxes")
 
 ## Example
 
-```{r, error=TRUE}
-# Document: devtools::document() or (Shift + Control + D)
-# Build: devtools::build() or Shift + Control + B)
-# Install: devtools::install() or click Install and Restart
-# Restart session (Control + Shift + F10)
+`data_preparation()` outputs a data.table, which has a special `print()` method.
 
+```{r, error=TRUE}
 library(AGBfluxes)
 
-data_preparation(
-  site = "barro colorado island",
-  stem = TRUE,
-  taper_correction = TRUE,
-  fill_missing = TRUE,
-  use_palm_allometry = TRUE,
-  flag_stranglers = TRUE,
-  dbh_stranglers = 500,
-  maxrel = 0.2,
-  output_errors = TRUE,
-  DATA_path = NULL,
-  exclude_interval = NULL
-)
+path <- agb_example("data")
+dir(path)
 
+# Make sure the name of your `site` is one of `site.info$site`
+prep <- data_preparation(path, site = "barro colorado island", stem = TRUE)
+
+head(prep)
+```
+
+The output is of class "data.table".
+
+```{r}
+class(prep)
+```
+
+You can save the output to a csv file of your choice.
+
+```{r}
+temp_file <- tempfile()
+write.csv(prep, temp_file)
+```
+
+Then read it and re-use it as needed.
+
+```{r}
+prep_2 <- read.csv(temp_file, stringsAsFactors = FALSE)
+prep_2[1:5, 1:5]
+```
+
+The newly read object is no longer of class "data.table". 
+
+(TODO: We should probably output a simple "data.frame" from `data_preparation()`. The output is small and I see no benefit on producing a "data.table".)
+
+### Side effects
+
+TODO: a funciton should either compute something or throw side effects, not both. We should likely exctact out the functionality that produces side effects.
+
+Currently `data_preparation()` can produce two side effects:
+
+* Write a .csv file with error flags.
+* Write .pdf file(s) showing problematic trees.
+
+```{r warning=FALSE}
+tmp <- tempdir()
+
+errors <- paste0(tmp, "/errors")
+# You would do something like this: 
+# errors <- "results/errors"
+
+problems <- paste0(tmp, "/problems")
+# You would do somethign like this: 
+# problems <- "results/problems"
+
+prep_3 <- data_preparation(
+  path, site = "barro colorado island", stem = TRUE,
+  write_errors_to = errors,
+  graph_problems_to = problems
+)
+```
+
+Show that side effects have been saved.
+
+```{r}
+dir(tmp, pattern = "csv$|pdf$$")
+```
+
+```{r}
+prep_3 <- read.csv(paste0(tmp, "/errors.csv"))
+names(prep_3)
+dim(prep_3)
 ```
 
