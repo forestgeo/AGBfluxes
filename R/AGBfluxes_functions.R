@@ -40,7 +40,7 @@
 #'   use_palm_allometry = TRUE,
 #'   flag_stranglers = TRUE,
 #'   dbh_stranglers = 500,
-#'   maxrel = 0.2,
+#'   max_prod = 0.2,
 #'   output_errors = TRUE,
 #'   DATA_path = NULL,
 #'   exclude_interval = NULL
@@ -48,14 +48,14 @@
 #' }
 data_preparation <- function(site,
                              stem,
-                              dbh_units="mm",
-                             WD = NULL,
+                              dbh_units="cm",
+                             use.CTFS.WD,
                              taper_correction,
                              fill_missing,
                              use_palm_allometry,
                              flag_stranglers,
                              dbh_stranglers,
-                             maxrel,
+                             max_prod,
                              output_errors,
                              DATA_path = NULL,
                              exclude_interval = NULL) {
@@ -151,33 +151,19 @@ data_preparation <- function(site,
     df <- rbind(df, temp)
   }
 
-  # TODO: No need to use `rm()` inside function.
-  rm(temp)
-  # TODO: Comment why the first row is useless. It's now obvious.
   df <- df[-1, ]
   message("Step 1: Data import done.")
 
-  # ID.TREE <- temp[status=="A"]$treeID[sample(1:nrow(temp[status=="A"]),10)]
-  # temp[treeID%in%ID.TREE]$dbh <- NA
-  # temp[treeID%in%ID.TREE]$hom <- NA
-  # bci_stem_2000 <- temp
-  # devtools::use_data(bci_stem_2000,overwrite = T)
 
-
-  # TODO: Rename to correct_data()?
-  #   But what does it mean to correct data? What columns of df are affected?
+  # STEP 1: data consolidation
   df <- consolidate_data(df, dbh_units,taper_correction, fill_missing, stem)
 
+  # STEP 2: Compute AGB
+  df <- computeAGB(df, site,DBH=NULL,use.CTFS.WD = T , H = NULL, use_palm_allometry)
 
-  # TODO: Reorder to match formals:
-  #   df, use_palm_allometry, DBH = NULL, WD = NULL, H = NULL
-  # FIXME: This fails because WD can't be found.
-  df <- computeAGB(df, site,DBH=NULL,WD = WD, H = NULL, use_palm_allometry)
-
-  message("Step 3: AGB calculation done.")
-
+  # STEP 3: Format intervals
   DF <- format_interval(df, flag_stranglers, dbh_stranglers)
-  message("Step 4: Formating intervals done.")
+
 
   DF <- flag_errors(
     DF,
@@ -187,7 +173,7 @@ data_preparation <- function(site,
     output_errors = output_errors,
     exclude_interval = exclude_interval
   )
-  message("Step 5: Errors flagged. Saving formated data into 'data' folder.")
+
 
   # TODO: Again, Why not output an object rather than write files?
   save(DF, file = paste0(getwd(), "/data/", site, "_formated_data.Rdata"))
@@ -438,7 +424,7 @@ correctDBH <- function(DT, taper_correction, fill_missing) {
 computeAGB <- function(df,
                        site,
                        DBH = NULL,
-                       WD = NULL,
+                       use.CTFS.WD = T ,
                        H = NULL,
                        use_palm_allometry) {
   if (!exists("DATA_path")) {
@@ -446,12 +432,14 @@ computeAGB <- function(df,
     DATA_path <<- paste0(path_folder, "/data/")
   }
   # Allocate wood density
-  df <- assignWD(df, site=site, WD=WD)
+  df <- assignWD(df, site=site, use.CTFS.WD = use.CTFS.WD)
 
 
   # Compute biomass
   df <- assignAGB(df, site=site, DBH = DBH, H = H,use_palm_allometry=use_palm_allometry)
 
+
+   message("Step 3: AGB calculation done.")
    df
 }
 
@@ -470,11 +458,17 @@ computeAGB <- function(df,
 #' @return A data.table (data.frame) with all relevant variables.
 #' @keywords internal
 #' @noRd
-assignWD <- function(DAT, site, WD = NULL) {
+assignWD <- function(DAT, site, use.CTFS.WD = T) {
   if (is.null(DATA_path)) {
     DATA_path <<- paste0(path_folder, "/data/")
   }
-
+  # if("wsg"%in%names(DAT)) {
+  #   A <- utils::menu(
+  #     c("Y", "N"),
+  #     title = "WD already present. Do you want to update those?"
+  #     )
+  # }
+  # if (A==T) {
   # Add genus & species to data
   SP <- LOAD(paste(DATA_path, list.files(DATA_path)[grep("spptable", list.files(DATA_path))], sep = "/"))
   # FIXME: Replace subset() with `[`. See ?subset():
@@ -486,7 +480,7 @@ assignWD <- function(DAT, site, WD = NULL) {
   # TODO: Remove sep. paste() defaults to `sep = " "`.
   SP$name <- paste(SP$Genus, SP$Species, sep = " ")
 
-  if (is.null(WD)) {
+  if (use.CTFS.WD) {
     # Import & format CTFS wood data base
     # TODO: This approach makes code clearer. E.g.:
     # meaningful_name <- site.info$wsg.site.name[site.info$site == tolower(site)]
@@ -518,8 +512,7 @@ assignWD <- function(DAT, site, WD = NULL) {
         SP$Species,
         stand = rep(site, nrow(SP)),
         family = NULL,
-        region = "World",
-        addWoodDensityData = WD
+        region = "World"
       )
     )
   }
@@ -530,9 +523,9 @@ assignWD <- function(DAT, site, WD = NULL) {
   SP <- unique(merge(SP, A[, c("name", "meanWD")], by = "name", all.x = T))
   names(SP) <- c("name", "sp", "genus", "species", "Family", "wsg")
   if (any(grep("name", names(DAT)))) {
-    DT <- merge(DAT, SP, by = "name", all.x = T)
+    DT <- merge(DAT[,-c("sp","wsg")], SP, by = "name", all.x = T)
   } else {
-    DT <- merge(DAT, SP, by = "sp", all.x = T)
+    DT <- merge(DAT[,-c("wsg")], SP, by = "sp", all.x = T)
   }
 
   # Allocate mean WD to species not in the list
@@ -553,6 +546,9 @@ assignWD <- function(DAT, site, WD = NULL) {
   }
 
   DT
+  # } else {
+  #   DAT
+  # }
 }
 
 
@@ -621,7 +617,11 @@ assignAGB <- function(DAT, site, DBH = NULL, H = NULL,use_palm_allometry) {
       exp(-3.3488 + 2.7483 * log(D / 10) + ((0.588)^2) / 2) / 1000
     }
 
-    if (!is.na(match("family", tolower(names(DAT))))) {
+    # Assign medium DBH by stem by species
+    MED_DBH <- DAT[Family=="Arecaceae",median(dbh2,na.rm=T),by=name]
+    DAT[!is.na(dbh2),"dbh2":=ifelse(is.na(MED_DBH$V1[match(name,MED_DBH$name)]),dbh2,MED_DBH$V1[match(name,MED_DBH$name)])]
+
+  if (!is.na(match("family", tolower(names(DAT))))) {
       DAT[Family == "Arecaceae", "agb" := agbPalm(dbh2)]
     } else {
       SP <- LOAD(paste0(DATA_path, list.files(DATA_path)[grep("spptable", list.files(DATA_path))]))
@@ -656,18 +656,25 @@ format_interval <- function(df,
                             flag_stranglers,
                             dbh_stranglers,
                             code.broken = NULL) {
-  YEAR <- unique(df$year)
+
+  YEAR <- sort(unique(df$year))
 
   # Receiveing data set
   nms <- c(
     "treeID", "dbh1", "dbhc1",  "status1", "code1",  "hom1",  "sp", "wsg",
-    "agb1", "date1",  "dbh2",  "dbhc2", "status2",  "code2", "hom2", "agb2",
-    "date2",  "broken",  "agbl",  "agb1.surv", "interval", "year"
+    "agb1", "date1", "Nstem1", "dbh2",  "dbhc2", "status2",  "code2", "hom2", "agb2",
+    "date2", "Nstem2", "broken",  "agbl",  "agb1.surv", "interval", "year"
   )
   # FIXME: Growing an object can be terribly slow. Instead of creating a
   # dataframe with one row you should create a dataframe with as many rows as
   # you need.
   DF2 <- data.table::setDT(receiving_df(nms))
+
+   # Avoid missing HOM (30/11/2018)
+  MISS_HOM <- df[, .I[is.na(hom) & status1!="D"],]
+  HOM <- df[MISS_HOM-1,hom]
+  HOM[is.na(HOM)] <- 1.3  # assign 1.3 to missing values (if no previous value)
+  df <- within(df, hom[MISS_HOM] <- HOM) # replace missing HOM by previous one
 
   # 4 minutes to run
   for (j in 1:(length(YEAR) - 1)) {
@@ -677,34 +684,27 @@ format_interval <- function(df,
     # meaningfully named variable.
     A1 <- df[i1$V1, c("treeID", "dbh", "dbh2", "status1", "codes", "hom", "agb", "id", "sp", "wsg")]
     names(A1) <- c("treeID", "dbh1", "dbhc1", "status1", "code1", "hom1", "agb", "id1", "sp", "wsg")
-    B1 <- df[year == YEAR[j] & status1 != "D", list("agb1" = sum(agb, na.rm = T), "date1" = mean(date, na.rm = T)), by = treeID]
+    B1 <- df[year == YEAR[j] & status1 != "D", list("agb1" = sum(agb, na.rm = T), "date1" = mean(date, na.rm = T),"Nstem1"=length(agb)), by = treeID]
     BB <- merge(B1, A1, by = "treeID", all.x = T)
-    cens1 <- BB[, c("treeID", "dbh1", "dbhc1", "status1", "code1", "hom1", "agb", "id1", "sp", "wsg", "agb1", "date1")]
+    cens1 <- BB[, c("treeID", "dbh1", "dbhc1", "status1", "code1", "hom1", "agb", "id1", "sp", "wsg", "agb1", "date1","Nstem1")]
 
     i2 <- df[year == YEAR[j + 1] & status1 != "D", .I[which.max(dbh2)], by = treeID]
     A2 <- df[i2$V1, c("treeID", "dbh", "dbh2", "hom", "status1", "codes", "id")]
     names(A2) <- c("treeID", "dbh2", "dbhc2", "hom2", "status2", "code2", "id2")
-    B2 <- df[year == YEAR[j + 1], list("agb2" = sum(agb[status1 != "D"], na.rm = T), "date2" = mean(date, na.rm = T)), by = treeID]
+    B2 <- df[year == YEAR[j + 1], list("agb2" = sum(agb[status1 != "D"], na.rm = T), "date2" = mean(date, na.rm = T),"Nstem2"=length(agb[status1 != "D"])), by = treeID]
     BB2 <- merge(B2, A2, by = "treeID", all.x = T)
-    cens2 <- BB2[, c("treeID", "dbh2", "dbhc2", "status2", "code2", "hom2", "agb2", "date2", "id2")]
+    cens2 <- BB2[, c("treeID", "dbh2", "dbhc2", "status2", "code2", "hom2", "agb2", "date2", "Nstem2","id2")]
     cens2 <- within(cens2, status2[is.na(status2)] <- "D")
 
     ID <- data.table::setDT(data.frame(treeID = unique(c(cens1$treeID, cens2$treeID))))
     ID <- merge(ID, cens1, by = "treeID", all.x = T)
     ID <- merge(ID, cens2, by = "treeID", all.x = T)
 
-    ID[, "broken" := ifelse(id1 != id2 & dbhc2 / dbhc1 < 0.8 & sp != "oenoma" & dbhc1 > 100 & hom2 <= hom1, 1, 0)] # flag large broken main stems to be added to losses
+    # Process broken stems
+    ID[, "broken" := ifelse(dbhc2 / dbhc1 < 0.8 & dbhc1 > 100 & hom2 <= hom1, 1, 0)] # flag large broken main stems to be added to losses
     ID[broken == 1, "agbl" := agb]
     ID[broken == 1, "agb1.surv" := agb1 - agbl]
-    # ID$broken <- 0  ## when not flaggigng broken stems
-    # ID$agbl <- as.numeric(NA)  ## when not flaggigng broken stems
-    # ID$agb1.surv <- as.numeric(NA)  ## when not flaggigng broken stems
-    # if(exists("code.broken")) {
-    # 	idx <- ID[broken==1,.I[!grepl(paste0("\\b",code.broken,"\\b"),code2) ]]
-    # } else {
-    # 	idx <- ID[broken==1,.I[!grepl("\\bR\\b",code2) ]]
-    # }
-    # ID[broken==1,] <- within(ID[broken==1,],code2[idx] <- "broken")
+
     ID[, c("agb", "id1", "id2") := NULL]
     ID$interval <- j
     ID$year <- YEAR[j + 1]
@@ -725,6 +725,12 @@ format_interval <- function(df,
   DF2[, "ID" := paste(DF2$year, DF2$quadrat, sep = "-")]
   DF2 <- within(DF2, date1[is.na(date1)] <- DATE$date[match(DF2[is.na(date1), ID], DATE$ID2)])
   DF2 <- within(DF2, date2[is.na(date2)] <- DATE$date[match(DF2[is.na(date2), ID], DATE$ID1)])
+
+  if (any(is.na(DF2$date1))) {
+  DATE2 <- df[, .(date = mean(date, na.rm = T)), by = .(year)][order(year)]
+  DATE2[, "year2" := c(year[2:length(year)], NA)] # year of previous census
+  DF2 <- within(DF2, date1[is.na(date1)] <- DATE2$date[match(DF2[is.na(date1), year], DATE2$year2)])
+  }
   DF2$int <- (DF2$date2 - DF2$date1) / 365.5 # census interval in days
 
   # Update status for recruited trees
@@ -743,13 +749,22 @@ format_interval <- function(df,
 
   # Compute annualized fluxes
   # annual prod for alive trees & multi-stems
-  DF2[code %in% c("A", "AC", "B"), prod.g := (agb2 - agb1) / int, by = treeID]
+  DF2[code %in% c("A", "AC"), prod.g := (agb2 - agb1) / int, by = treeID]
   # annual prod for alive trees & multi-stems
-  DF2[code == "B", prod.g := (agb2 - agb1.surv) / int, by = treeID]
+  DF2[code == "B", prod.g := ifelse(agb1.surv!=0,(agb2 - agb1.surv) / int,0), by = treeID]
   # annual prod for resprouts and recruits
   DF2[code %in% c("R", "Rsp"), prod.r := agb2 / int, by = treeID]
   DF2[code == "D", agbl := agb1, by = treeID]
-  DF2[, loss := agbl / int, by = treeID] # annualized loss for dead trees
+  DF2[,loss := agbl / int, by = treeID] # annualized loss for dead trees
+
+  # Process multiple stems trees:
+  DF2[,"dN":=Nstem2 -Nstem1]
+  # allocate agb to losses if nstem2 - nstem1 <0
+  DF2 <- within(DF2,loss[dN<0 & Nstem1>1 & code%in% c("A", "AC")] <- abs(prod.g[dN<0 & Nstem1>1 & code%in% c("A", "AC")]))
+  DF2 <- within(DF2,prod.g[dN<0 & Nstem1>1 & code%in% c("A", "AC")] <- 0 )
+  # allocate agb to resprout if nstem2 - nstem1 > 0
+  DF2 <- within(DF2,prod.r[dN>0 & Nstem1>1 & code%in% c("A", "AC")] <- prod.g[dN>0 & Nstem1>1 & code%in% c("A", "AC")])
+  DF2 <- within(DF2,prod.g[dN>0 & Nstem1>1 & code%in% c("A", "AC")] <- 0 )
 
   # Flag large strangler figs
   if (flag_stranglers) {
@@ -761,7 +776,7 @@ format_interval <- function(df,
     }
     DF2 <- within(DF2, ficus[!is.na(FIC) & dbhc1 > dbh_stranglers] <- 1)
   }
-
+  DF2[, c("agbl", "agb1.surv","broken") := NULL]
   DF2
 }
 
@@ -934,7 +949,9 @@ flag_errors <- function(DF,
   # which computes something and returns DF, and plot_flags(), which plots DF.
   # You can create a class "flags" and write an S3 method for plot() -- i.e.
   # plot.flags() -- so you get the plot with `plot(flag_errors())`.
+  DF[, c("prod.rel","ID") := NULL]
 
+  message("Step 5: Errors flagged. Saving formated data into 'data' folder.")
   DF
 } # end of major.error
 
@@ -956,20 +973,21 @@ flag_errors <- function(DF,
 #' @keywords internal
 #' @noRd
 determine_mean_prod <- function(DF, flag_stranglers, exclude_interval) {
+  if (!"quad"%in%names(DF)){
   grid.size=10
   area =(grid.size^2)/(10000)
   DF <- create_quad(DF,grid.size,x="gx",y="gy",fit.in.plot=T)
-
+  }
   if (missing(exclude_interval)) {
     # TODO: Clarify what's going on here. You may need to extract functions and
     # write variables with meaningful names.
     ifelse(flag_stranglers,
-    PRODA  <- DF[ficus != 1,.(prod=sum(prod.g,na.rm=T)/area,dHOM=ifelse(any(abs(dHOM)>0.1),1,0)),by=c("quad","year")][order(year)],
-    PRODA  <- DF[,.(prod=sum(prod.g,na.rm=T)/area,dHOM=ifelse(any(abs(dHOM)>0.1),1,0)),by=c("quad","year")][order(year)])
+    PRODA  <- DF[ficus != 1,.(prod=sum(prod.g,na.rm=T)/area,dHOM=ifelse(any(abs(dHOM)>0.1,na.rm=T),1,0)),by=c("quad","year")][order(year)],
+    PRODA  <- DF[,.(prod=sum(prod.g,na.rm=T)/area,dHOM=ifelse(any(abs(dHOM)>0.1,na.rm=T),1,0)),by=c("quad","year")][order(year)])
     } else {
     ifelse(flag_stranglers,
-    PRODA  <- DF[ficus != 1 & !interval%in%c(exclude_interval),.(prod=sum(prod.g,na.rm=T)/area,dHOM=ifelse(any(abs(dHOM)>0.1),1,0)),by=c("quad","year")][order(year)],
-    PRODA  <- DF[!interval%in%c(exclude_interval),.(prod=sum(prod.g,na.rm=T)/area,dHOM=ifelse(any(abs(dHOM)>0.1),1,0)),by=c("quad","year")][order(year)])
+    PRODA  <- DF[ficus != 1 & !interval%in%c(exclude_interval),.(prod=sum(prod.g,na.rm=T)/area,dHOM=ifelse(any(abs(dHOM)>0.1,na.rm=T),1,0)),by=c("quad","year")][order(year)],
+    PRODA  <- DF[!interval%in%c(exclude_interval),.(prod=sum(prod.g,na.rm=T)/area,dHOM=ifelse(any(abs(dHOM)>0.1,na.rm=T),1,0)),by=c("quad","year")][order(year)])
     }
 
   mPROD <- PRODA[dHOM==0,mean(prod)]
@@ -1035,6 +1053,8 @@ check_status <- function(DT) {
     STAT <- rep("Dr", nrow(DT))
   } else if (any(is.na(DT$dbh)) | any(grep("\\bD\\b", DT$status))) { # look for dbh=NA or dead (D) status
     locA <- which(DT$status == "A" & !is.na(DT$dbh))
+    locD <- which(DT$status != "A" & is.na(DT$dbh))
+
     if (length(locA) != 0) {
       if (min(locA) > 1) {
         STAT[is.na(DT$dbh)][1:min(locA) - 1] <- "P"
@@ -1043,8 +1063,13 @@ check_status <- function(DT) {
         STAT[(max(locA) + 1)] <- "D"
       }
       if (max(locA) + 2 <= nrow(DT)) {
-        STAT[(max(locA) + 2):nrow(DT)] <- "Dr"
-      } # Dead replicated (to be discarded)
+        STAT[(max(locA) + 2):nrow(DT)] <- "Dr" # Dead replicated (to be discarded)
+      }
+      # # Broken stem/resprout
+      # if (length(locD)>0 & locD<nrow(DT)) {
+      # STAT[locD] <- "B"
+      # STAT[locD+1] <- "Rsp"
+      # }
     } # end of loca>0
   }
 
@@ -1131,26 +1156,6 @@ assign_status <- function(DT) {
 
   list(agbl, code, dHOM)
 }
-
-
-
-# FIXME: Can we remove this?
-# assign_status2 <- function(DT) {
-# 	code <- rep("A",nrow(DT))
-# 	code[DT$status1=="P"] <- "R"
-# 	code[is.na(DT$dbhc1) & DT$status2=="A" & code!="R"] <- "Rsp"  # resprouted trees poses a problem only the first year, are alive/dead after
-# 	code[DT$status2=="D"] <- "D"
-# 	if(any(code=="A")){
-# 		loc <- max(which(code%in%c("A","Rsp")))
-# 		if (any(code[1:loc]=="D")) {
-# 			code[which(code[1:loc]=="D")] <- "A"
-# 			dbh2
-# 		}}
-# 	dHOM <- DT$hom2 - DT$hom1
-# 	dHOM[is.na(dHOM)] <- 0
-# 	code[code=="A" & dHOM!=0] <- "AC" # trees with POM changed are not accounted for in productivity
-# 	return(list(code,dHOM))
-# }
 
 
 
