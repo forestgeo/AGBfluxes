@@ -12,9 +12,7 @@
 #' @param DATA_path the pathname where the data are located
 #' @param exclude_interval NULL by default. If needed a vector (e.g. c(1,2)) indicating which census interval(s) must be discarded from computation due, for instance, to a change in measurement protocol
 #' @return a data.table (data.frame) with all relevant variables.
-#' @import data.table, BIOMASS
 #' @export
-#' @example
 
 data_preparation <- function(site,
 	stem,
@@ -29,8 +27,6 @@ data_preparation <- function(site,
 	output_errors,
 	DATA_path = NULL,
 	exclude_interval = NULL) {
-  # ## DEBUG
-  # site="barro colorado island";stem=T;taper_correction=T;fill_missing=T;use_palm_allometry=T;flag_stranglers=T;dbh_stranglers=500;max_prod=.2;output_errors=F;DATA_path=NULL;exclude_interval=1;use.CTFS.WD=T
 
 	# TODO: Remove this if (): Make `DATA_path` the first argument with no default
 	if (is.null(DATA_path)) {
@@ -187,7 +183,6 @@ consolidate_data <- function(df, dbh_units,taper_correction, fill_missing, stem)
 #' @param DF a data.table
 #' @param taper_correction TRUE or FALSE, are you willing to apply Cushman et al (2014) taper correction?
 #' @param fill_missing TRUE or FALSE, are you willing to extrapolate missing DBH from surrounding DBH?
-#' @import data.table
 #' @return a data.table (data.frame) with all relevant variables.
 #' @export
 
@@ -214,7 +209,7 @@ correctDBH <- function(DT) {
 			DBH2[RESP] <- NA  # these were already NA to begin with, are being put back to that
 			hom2[RESP] <- 1.30
 		}
-	
+
 	if(tail(DT$status1,1)=="D") {DBH2 <- c(DBH2,0);hom2<-c(hom2,hom2[length(hom2)])}
 	return(list(DBH2,hom2))
 }
@@ -227,7 +222,6 @@ correctDBH <- function(DT) {
 #' @param WD optional, provide an external data.frame of wood densities by species
 #' @param H optional, specify the column with height measurments
 #' @param use_palm_allometry TRUE or FALSE, if TRUE, biomass of palm trees is computed through a specific allometric model (Goodman et al. 2013). Only valid for South America.
-#' @import data.table
 #' @return a data.table (data.frame) with all relevant variables.
 #' @export
 computeAGB <- function(df,
@@ -425,7 +419,7 @@ assignAGB <- function(DAT, site, DBH = NULL, H = NULL,use_palm_allometry) {
 		agbPalm <- function(D) {
 			exp(-3.3488 + 2.7483 * log(D / 10) + ((0.588)^2) / 2) / 1000
 		}
-		
+
 		if (is.na(match("family", tolower(names(DAT))))) {
 			SP <- LOAD(paste0(DATA_path, list.files(DATA_path)[grep("spptable", list.files(DATA_path))]))
 			trim <- function(x) gsub("^\\s+|\\s+$", "", x)
@@ -435,7 +429,7 @@ assignAGB <- function(DAT, site, DBH = NULL, H = NULL,use_palm_allometry) {
 			SP$name <- paste(SP$genus, SP$species, sep = " ")
 			names(SP) <- c("sp", "genus", "species", "Family", "name")
 			DAT <- merge(DAT, SP, by = "sp", all.x = T)
-		} 
+		}
 		# Assign medium DBH by stem by species
 		MED_DBH <- DAT[Family=="Arecaceae",median(dbh2,na.rm=T),by=name]
 		DAT[!is.na(dbh2),"dbh2":=ifelse(is.na(MED_DBH$V1[match(name,MED_DBH$name)]),dbh2,MED_DBH$V1[match(name,MED_DBH$name)])]
@@ -451,7 +445,6 @@ assignAGB <- function(DAT, site, DBH = NULL, H = NULL,use_palm_allometry) {
 #' @param df a data.table
 #' @param flag_stranglers TRUE or FALSE, individuals of known strangler fig species greater than 'dbh_stranglers' are flagged
 #' @param dbh_stranglers (optional) minimal diameter (in mm) of strangler figs, default = 500
-#' @import data.table
 #' @return a formated data.table.
 #' @export
 
@@ -502,7 +495,7 @@ format_interval <- function(df,flag_stranglers,dbh_stranglers,code.broken=NULL) 
 	DF2[dbhc2<55  & year==1990,"dbhc2":= rndown5(dbhc2),]
 	DF2[dbhc2<55  & year==1990,"agb2":= assignAGB(.SD,site,DBH="dbhc2",H=NULL,use_palm_allometry)$agb,]
 	}
-	
+
 	DF2$int <- (DF2$date2 - DF2$date1)/365.5  # census interval in days
 	DF2[,"dN":=Nstem2 -Nstem1]
   DF2 <- within(DF2,hom2[status2=="D"] <- hom1[status2=="D"])
@@ -549,10 +542,9 @@ format_interval <- function(df,flag_stranglers,dbh_stranglers,code.broken=NULL) 
 #' @param maxrel a numeric value setting the threshold over which relative productivity is assumed to be too high (usually set at 20 percents)
 #' @param output_errors TRUE or FALSE, output all records for trees with major errors in productivity to a csv file
 #' @param exclude_interval a vector (i.e. c(1,2)) indicating if a set of census intervals must be discarded from computation due for instance to a change in  protocol of measurment
-#' @import data.table
 #' @return a data.table (data.frame) with all relevant variables.
 #' @export
-#'
+
 flag_errors <- function(DF,
 	site,
 	flag_stranglers,
@@ -732,6 +724,7 @@ median_prod <- function(DT, flag_stranglers, exclude_interval) {
 #' @param range the range of initial AGB to be used for prediction (i.e. 5th and 95th percentiles of the whole distribution)
 #' @return a smoothed prediction of the variable of interest
 #' @export
+
 loess.fun <- function(x,var,range,weights=NULL)  {
 	if (is.null(weights)) {
 	fit <- locfit(var ~ lAGB, data=x)}
@@ -753,7 +746,7 @@ loess.fun <- function(x,var,range,weights=NULL)  {
 #' @param x a data.table
 #' @return a data.table (data.frame) with a new colum "status1" where values can be "P"(prior),"A"(alive),"D"(dead) and "Dr"(dead replicated).
 #' @export
-#'
+
 check_status <-function(DT) {
 	if(!"status"%in%names(DT)) {
 		DT$status <- NA
@@ -800,13 +793,6 @@ LOAD <- function(saveFile) {
 #' @param DF a data.table
 #' @return update the column 'status1' with consistent information.
 #' @export
-#'
-#' # # # Debug
-# DT <- DF2[treeID==391]
-# DT <- DF2[treeID== 230867 ][order(year)]
-# DT <- DF2[treeID==5637]
-# DT <- DF2[treeID==246480 ]
-# assign_status(DT)
 
 assign_status <- function(DT) {
 	code <- rep("A",nrow(DT))

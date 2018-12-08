@@ -21,11 +21,11 @@ Depends:
     R (>= 3.1)
 Imports:
     BIOMASS,
-    data.table,
     ggplot2,
     gridExtra,
     stats,
-    utils
+    utils,
+    data.table
 Suggests:
     covr,
     testthat
