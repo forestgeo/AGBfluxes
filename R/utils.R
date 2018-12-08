@@ -25,6 +25,6 @@ receiving_df <- function(.names) {
 #'
 #' @examples
 #' agb_example("data")
-agb_example <- function(path) {
+import_data <- function(path) {
   system.file("extdata", path, package = "AGBfluxes")
 }
