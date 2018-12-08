@@ -48,8 +48,6 @@ data_preparation <- function(site,
 		)
 	}
 
-	DATA_path <- paste0(getwd(), "/data/")
-	path_folder <- getwd()
 	files <- list.files(DATA_path)
 	# TODO: Relying on string matching might be dangerous.
 	ifelse(
@@ -123,7 +121,7 @@ data_preparation <- function(site,
 
 
 	# TODO: Again, Why not output an object rather than write files?
-	save(DF, file = paste0(getwd(), "/data/", site, "_formated_data.Rdata"))
+	save(DF, file = paste0(DATA_path, site, "_formated_data.Rdata"))
 
 	DF[order(year,treeID)]
 }
@@ -170,13 +168,13 @@ consolidate_data <- function(df, dbh_units,taper_correction, fill_missing, stem)
   if (fill_missing){
     MISS_VAL <- df[!status1%in%c("P","D"),.I[is.na(dbh)],by=id][[1]]
     df[, c("dbh2","hom2") := .(dbh,hom)]
-    system.time(df[id%in%MISS_VAL, c("dbh2","hom2") := correctDBH(.SD), by=id])
+    df[id%in%MISS_VAL, c("dbh2","hom2") := correctDBH(.SD), by=id]
   }
   # Apply taper correction
   if (taper_correction){
     df[,dbh2 := ifelse(hom2==1.3,dbh2,round(dbh2*exp(0.0247*(hom2-1.3)),1))]
   }
-  table(is.na(df$dbh2),df$status1)
+
   message("Step 2: Data consolidation done.")
   df
 }
@@ -194,30 +192,31 @@ consolidate_data <- function(df, dbh_units,taper_correction, fill_missing, stem)
 #' @export
 
 correctDBH <- function(DT) {
-	dbh2 <- DT[status1!="D",'dbh'][[1]]
+	DBH2 <- DT[status1!="D",'dbh'][[1]]
 	hom2 <- DT[status1!="D",round(hom*100)/100]   # round hom to the nearest 0.01 to avoid issues with hom=1.29999 vs. 1.3
-	hom2[is.na(hom2) & !is.na(dbh2)] <- 1.3
+	hom2[is.na(hom2) & !is.na(DBH2)] <- 1.3
 	DATE <- DT[status1!="D","date"][[1]]
 
-	loc <- DT[,.I[is.na(dbh2) & status1=="A"]] # avoid broken stems
+	loc <- DT[,.I[is.na(dbh) & status1=="A"]] # avoid broken stems and resprout
 
 	# 2. Fill gaps
 	if (!is.null(loc)) {
 			tryCatch(
-		dbh2[loc] <- approx(DATE,dbh2,rule=2,xout=DT$date[loc])$y
+		DBH2[loc] <- approx(DATE,DBH2,rule=2,xout=DT$date[loc])$y
 			,error=function(e) print(paste("Stem id",paste(DT$treeID,DT$stemID,sep="-"),"generates a problem.")))
 		hom2[loc] <- approx(DATE,hom2,rule=2,xout=DT$date[loc])$y
 		} # end of alive stems
 
 		# Resprouts
 ##H  the following has been fixed
-		RESP <- is.na(DT$dbh) & grepl("\\bR\\b",DT$codes)
+		RESP <- is.na(DT$dbh[DT$status1!="D"]) & grepl("\\bR\\b",DT$codes[DT$status1!="D"])
 		if(any(RESP)) {
-			dbh2[RESP] <- NA  # these were already NA to begin with, are being put back to that
+			DBH2[RESP] <- NA  # these were already NA to begin with, are being put back to that
 			hom2[RESP] <- 1.30
 		}
-
-	return(list(dbh2,hom2))
+	
+	if(tail(DT$status1,1)=="D") {DBH2 <- c(DBH2,0);hom2<-c(hom2,hom2[length(hom2)])}
+	return(list(DBH2,hom2))
 }
 
 #' Biomass computation
@@ -237,7 +236,7 @@ computeAGB <- function(df,
 	use.CTFS.WD = T ,
 	H = NULL,
 	use_palm_allometry) {
-	if (!exists("DATA_path")) {
+	if (is.null("DATA_path")) {
 		# TODO: `<<-` is dangerous. Are you sure you need it?
 		DATA_path <<- paste0(path_folder, "/data/")
 	}
@@ -426,14 +425,8 @@ assignAGB <- function(DAT, site, DBH = NULL, H = NULL,use_palm_allometry) {
 		agbPalm <- function(D) {
 			exp(-3.3488 + 2.7483 * log(D / 10) + ((0.588)^2) / 2) / 1000
 		}
-
-		# Assign medium DBH by stem by species
-		MED_DBH <- DAT[Family=="Arecaceae",median(dbh2,na.rm=T),by=name]
-		DAT[!is.na(dbh2),"dbh2":=ifelse(is.na(MED_DBH$V1[match(name,MED_DBH$name)]),dbh2,MED_DBH$V1[match(name,MED_DBH$name)])]
-
-		if (!is.na(match("family", tolower(names(DAT))))) {
-			DAT[Family == "Arecaceae", "agb" := agbPalm(dbh2)]
-		} else {
+		
+		if (is.na(match("family", tolower(names(DAT))))) {
 			SP <- LOAD(paste0(DATA_path, list.files(DATA_path)[grep("spptable", list.files(DATA_path))]))
 			trim <- function(x) gsub("^\\s+|\\s+$", "", x)
 			SP$genus <- trim(substr(SP$Latin, 1, regexpr(" ", SP$Latin)))
@@ -442,8 +435,12 @@ assignAGB <- function(DAT, site, DBH = NULL, H = NULL,use_palm_allometry) {
 			SP$name <- paste(SP$genus, SP$species, sep = " ")
 			names(SP) <- c("sp", "genus", "species", "Family", "name")
 			DAT <- merge(DAT, SP, by = "sp", all.x = T)
-			DAT[Family == "Arecaceae", "agb" := agbPalm(dbh2)]
-		}
+		} 
+		# Assign medium DBH by stem by species
+		MED_DBH <- DAT[Family=="Arecaceae",median(dbh2,na.rm=T),by=name]
+		DAT[!is.na(dbh2),"dbh2":=ifelse(is.na(MED_DBH$V1[match(name,MED_DBH$name)]),dbh2,MED_DBH$V1[match(name,MED_DBH$name)])]
+
+		DAT[Family == "Arecaceae", "agb" := agbPalm(dbh2)]
 	}
 
 	DAT
@@ -499,6 +496,13 @@ format_interval <- function(df,flag_stranglers,dbh_stranglers,code.broken=NULL) 
 	}
 	DF2 <- DF2[-1,]
 
+	# Round DBH in 1990
+	if (site=="barro colorado island") {
+	rndown5=function(s) return(5*floor(s/5))
+	DF2[dbhc2<55  & year==1990,"dbhc2":= rndown5(dbhc2),]
+	DF2[dbhc2<55  & year==1990,"agb2":= assignAGB(.SD,site,DBH="dbhc2",H=NULL,use_palm_allometry)$agb,]
+	}
+	
 	DF2$int <- (DF2$date2 - DF2$date1)/365.5  # census interval in days
 	DF2[,"dN":=Nstem2 -Nstem1]
   DF2 <- within(DF2,hom2[status2=="D"] <- hom1[status2=="D"])
