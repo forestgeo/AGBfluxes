@@ -5,6 +5,7 @@
 #' @param taper_correction TRUE or FALSE, apply Cushman et al (2014) taper correction
 #' @param fill_missing TRUE or FALSE, interpolate missing DBH values
 #' @param use_palm_allometry TRUE or FALSE, if TRUE, compute biomass of palm trees using a palm-specific allometric model from Goodman et al. (2013)
+#' @param palm_list (optional) a vector containging the different pal species to be included, instead all Areaceae are chosen
 #' @param flag_stranglers TRUE or FALSE, individuals of known strangler fig species greater than 'dbh_stranglers' are flagged
 #' @param dbh_stranglers (optional) minimal diameter (in mm) of strangler figs, default = 500
 #' @param maxrel a numeric value: the threshold for flagging major errors in productivity, applied as absval(individual tree productivity)>maxrel*(average productivity per hectare)
@@ -21,6 +22,7 @@ data_preparation <- function(site,
 	taper_correction,
 	fill_missing,
 	use_palm_allometry,
+  palm_list,
 	flag_stranglers,
 	dbh_stranglers,
 	max_prod,
@@ -97,29 +99,25 @@ data_preparation <- function(site,
 
 
 	# STEP 1: data consolidation
-	df <- consolidate_data(df, dbh_units,taper_correction, fill_missing, stem)
+	df2 <- consolidate_data(df, dbh_units,taper_correction, fill_missing, stem)
 
 	# STEP 2: Compute AGB
-	df <- computeAGB(df, site,DBH=NULL,use.CTFS.WD = T , H = NULL, use_palm_allometry)
+	df3 <- computeAGB(df2, site,DBH=NULL,use.CTFS.WD = T , H = NULL, use_palm_allometry,palm_list)
 
   # STEP 3: Format intervals
-	DF <- format_interval(df, flag_stranglers, dbh_stranglers)
+  DF <- format_interval(df3, flag_stranglers, dbh_stranglers)
 
+  # STEP 4: Flag errors
+        	DF <- flag_errors(
+        		DF,
+        		site,
+        		flag_stranglers = flag_stranglers,
+        		max_prod =0.2,
+        		output_errors = output_errors,
+        		exclude_interval = exclude_interval
+        	)
 
-	DF <- flag_errors(
-		DF,
-		site,
-		flag_stranglers = flag_stranglers,
-		max_prod =0.2,
-		output_errors = output_errors,
-		exclude_interval = exclude_interval
-	)
-
-
-	# TODO: Again, Why not output an object rather than write files?
-	save(DF, file = paste0(DATA_path, site, "_formated_data.Rdata"))
-
-	DF[order(year,treeID)]
+        	DF[order(year,treeID)]
 }
 
 #' Check for consistency across censuses.
@@ -164,7 +162,7 @@ consolidate_data <- function(df, dbh_units,taper_correction, fill_missing, stem)
   if (fill_missing){
     MISS_VAL <- df[!status1%in%c("P","D"),.I[is.na(dbh)],by=id][[1]]
     df[, c("dbh2","hom2") := .(dbh,hom)]
-    df[id%in%MISS_VAL, c("dbh2","hom2") := correctDBH(.SD), by=id]
+    df[id%in%MISS_VAL, c("dbh2","hom2") := correctDBH(.SD,DBH='dbh'), by=id]
   }
   # Apply taper correction
   if (taper_correction){
@@ -186,16 +184,20 @@ consolidate_data <- function(df, dbh_units,taper_correction, fill_missing, stem)
 #' @return a data.table (data.frame) with all relevant variables.
 #' @export
 
-correctDBH <- function(DT) {
-	DBH2 <- DT[status1!="D",'dbh'][[1]]
+correctDBH <- function(DT,DBH='dbh') {
+	DBH2 <- DT[status1!="D"][[DBH]]
 	hom2 <- DT[status1!="D",round(hom*100)/100]   # round hom to the nearest 0.01 to avoid issues with hom=1.29999 vs. 1.3
 	hom2[is.na(hom2) & !is.na(DBH2)] <- 1.3
 	DATE <- DT[status1!="D","date"][[1]]
 
-	loc <- DT[,.I[is.na(dbh) & status1=="A"]] # avoid broken stems and resprout
+	loc <- which(is.na(DBH2)) # avoid broken stems and resprout
 
 	# 2. Fill gaps
 	if (!is.null(loc)) {
+	  if(length(na.omit(DBH2))<2) {
+	    DBH2[loc] <- DBH2[loc-1]  # replicate last value when only 1 measure
+	    hom2[loc] <- hom2[loc-1]
+	    } else {
 			tryCatch(
 		DBH2[loc] <- approx(DATE,DBH2,rule=2,xout=DT$date[loc])$y
 			,error=function(e) print(paste("Stem id",paste(DT$treeID,DT$stemID,sep="-"),"generates a problem.")))
@@ -211,8 +213,8 @@ correctDBH <- function(DT) {
 		}
 
 	if(tail(DT$status1,1)=="D") {DBH2 <- c(DBH2,0);hom2<-c(hom2,hom2[length(hom2)])}
-	return(list(DBH2,hom2))
-}
+	return(list(round(DBH2,1),hom2))
+}}
 
 #' Biomass computation
 #' @author Ervan Rutishauser (er.rutishauser@gmail.com)
@@ -229,17 +231,18 @@ computeAGB <- function(df,
 	DBH = NULL,
 	use.CTFS.WD = T ,
 	H = NULL,
-	use_palm_allometry) {
-	if (is.null("DATA_path")) {
+	use_palm_allometry,
+  palm_list) {
+	if (!exists("DATA_path")) {
 		# TODO: `<<-` is dangerous. Are you sure you need it?
-		DATA_path <<- paste0(path_folder, "/data/")
+		DATA_path <- path2data("data")
 	}
 	# Allocate wood density
 	df <- assignWD(df, site=site, use.CTFS.WD = use.CTFS.WD)
 
 
 	# Compute biomass
-	df <- assignAGB(df, site=site, DBH = DBH, H = H,use_palm_allometry=use_palm_allometry)
+	df <- assignAGB(df, site=site, DBH = DBH, H = H,use_palm_allometry=use_palm_allometry,palm_list=palm_list)
 
 
 	message("Step 3: AGB calculation done.")
@@ -263,7 +266,7 @@ computeAGB <- function(df,
 #' @noRd
 assignWD <- function(DAT, site, use.CTFS.WD = T) {
 	if (is.null(DATA_path)) {
-		DATA_path <<- paste0(path_folder, "/data/")
+		DATA_path <<- path2data("data")
 	}
 	# if("wsg"%in%names(DAT)) {
 	#   A <- utils::menu(
@@ -308,6 +311,7 @@ assignWD <- function(DAT, site, use.CTFS.WD = T) {
 			region = "World",
 			addWoodDensityData = wsg)
 		)
+		A$family <- BIOMASS::getTaxonomy(A$genus)$family
 	} else {
 		A <- invisible(
 			BIOMASS::getWoodDensity(
@@ -371,7 +375,7 @@ assignWD <- function(DAT, site, use.CTFS.WD = T) {
 #' @return A vector with AGB values (in Mg).
 #' @keywords internal
 #' @noRd
-assignAGB <- function(DAT, site, DBH = NULL, H = NULL,use_palm_allometry) {
+assignAGB <- function(DAT, site, DBH = NULL, H = NULL,use_palm_allometry,palm_list) {
 	if (!is.null(DBH)) {
 		D <- DAT[, get(DBH)]
 	} else {
@@ -419,7 +423,6 @@ assignAGB <- function(DAT, site, DBH = NULL, H = NULL,use_palm_allometry) {
 		agbPalm <- function(D) {
 			exp(-3.3488 + 2.7483 * log(D / 10) + ((0.588)^2) / 2) / 1000
 		}
-
 		if (is.na(match("family", tolower(names(DAT))))) {
 			SP <- LOAD(paste0(DATA_path, list.files(DATA_path)[grep("spptable", list.files(DATA_path))]))
 			trim <- function(x) gsub("^\\s+|\\s+$", "", x)
@@ -430,12 +433,19 @@ assignAGB <- function(DAT, site, DBH = NULL, H = NULL,use_palm_allometry) {
 			names(SP) <- c("sp", "genus", "species", "Family", "name")
 			DAT <- merge(DAT, SP, by = "sp", all.x = T)
 		}
+
+		if(is.null(palm_list)){
 		# Assign medium DBH by stem by species
 		MED_DBH <- DAT[Family=="Arecaceae",median(dbh2,na.rm=T),by=name]
 		DAT[!is.na(dbh2),"dbh2":=ifelse(is.na(MED_DBH$V1[match(name,MED_DBH$name)]),dbh2,MED_DBH$V1[match(name,MED_DBH$name)])]
 
 		DAT[Family == "Arecaceae", "agb" := agbPalm(dbh2)]
-	}
+		} else {
+		MED_DBH <- DAT[name%in%palm_list,median(dbh2,na.rm=T),by=name]
+		DAT[!is.na(dbh2),"dbh2":=ifelse(is.na(MED_DBH$V1[match(name,MED_DBH$name)]),dbh2,MED_DBH$V1[match(name,MED_DBH$name)])]
+
+		DAT[name%in%palm_list, "agb" := agbPalm(dbh2)]
+		  }}
 
 	DAT
 }
@@ -448,34 +458,34 @@ assignAGB <- function(DAT, site, DBH = NULL, H = NULL,use_palm_allometry) {
 #' @return a formated data.table.
 #' @export
 
-format_interval <- function(df,flag_stranglers,dbh_stranglers,code.broken=NULL) {
+format_interval <- function(df2,flag_stranglers,dbh_stranglers,code.broken=NULL) {
 
-  YEAR <- unique(df$year)
+  YEAR <- levels(factor(df2$year))
 	# Receiving data set
 	DF2 <- data.table("treeID"=NA,"dbh1"=NA,"dbhc1"=NA,"status1"=NA,"code1"=NA,"hom1"=NA,"agbmain"=NA,"sp"=NA,"wsg"=NA,"x"=NA,"y"=NA,"agb1"=NA,"date1"=NA,"Nstem1"=NA,"dbh2"=NA,"dbhc2"=NA,"status2"=NA,"code2"=NA,"hom2"=NA,"agb2"=NA, "date2"=NA,"Nstem2"=NA, "interval"=NA, "year"=NA)
 
 	# Avoid missing HOM (30/11/2018)
-	df <- within(df,hom[is.na(hom) & !status1%in%c("P","D")] <- hom2[is.na(hom) & !status1%in%c("P","D")])
-	df <- within(df,hom[is.na(hom) & !status1%in%c("P","D")] <- 1.3)
-	df <- within(df,dbh2[status1%in%c("P","D")] <- 0)
+	df2 <- within(df2,hom[is.na(hom) & !status1%in%c("P","D")] <- hom2[is.na(hom) & !status1%in%c("P","D")])
+	df2 <- within(df2,hom[is.na(hom) & !status1%in%c("P","D")] <- 1.3)
+	df2 <- within(df2,dbh2[status1%in%c("P","D")] <- 0)
 
 	##H this could be sped up by first going from stem to tree level
 	##H for all censuses combined
 	##H and then aligning the datasets
 	##H this would reduce the possibility of errors when unaligned changes are made
 	for (j in 1:(length(YEAR)-1)) {  # 4 minutes to run
-		i1 <- df[year==YEAR[j] & status1 != "D", .I[which.max(dbh2)], by = treeID] # keep only information for the biggest alive stem per treeID  ##H if have status1!="D" why not also status1!="P"
-		A1 <- df[i1$V1,c("treeID","dbh","dbh2","hom","status1","codes","agb","sp","wsg","gx","gy")]
+		i1 <- df2[year==YEAR[j] & status1 != "D", .I[which.max(dbh2)], by = treeID] # keep only information for the biggest alive stem per treeID  ##H if have status1!="D" why not also status1!="P"
+		A1 <- df2[i1$V1,c("treeID","dbh","dbh2","hom","status1","codes","agb","sp","wsg","gx","gy")]
 		names(A1) <- c("treeID","dbh1","dbhc1","hom1","status1","code1","agbmain","sp","wsg","x","y")
 
-		B1 <- df[year==YEAR[j] & status1 != "D",list("agb1"=sum(agb,na.rm=T),"date1"=mean(date,na.rm=T),"Nstem1"=length(agb[status1!="P"])),by=treeID]  ##H why is status1!"D" in one place, and status1!="P" in another?
+		B1 <- df2[year==YEAR[j] & status1 != "D",list("agb1"=sum(agb,na.rm=T),"date1"=mean(date,na.rm=T),"Nstem1"=length(agb[status1!="P"])),by=treeID]  ##H why is status1!"D" in one place, and status1!="P" in another?
 		BB <- merge(B1,A1,by="treeID",all.x=T)
 		cens1 <- BB[,c("treeID","dbh1","dbhc1","status1","code1","hom1","agbmain","sp","wsg","x","y","agb1","date1","Nstem1")]
 
-		i2 <- df[year==YEAR[j+1] & status1!="P", .I[which.max(dbh2)], by = treeID]
-		A2 <- df[i2$V1,c("treeID","dbh","dbh2","hom","status1","codes")]
+		i2 <- df2[year==YEAR[j+1] & status1!="P", .I[which.max(dbh2)], by = treeID]
+		A2 <- df2[i2$V1,c("treeID","dbh","dbh2","hom","status1","codes")]
 		names(A2) <- c("treeID","dbh2","dbhc2","hom2","status2","code2")
-		B2 <- df[year==YEAR[j+1] & status1!="P",list("agb2"=sum(agb,na.rm=T),"date2"=mean(date,na.rm=T),"Nstem2"=length(agb[status1 != "D"])),by=treeID]
+		B2 <- df2[year==YEAR[j+1] & status1!="P",list("agb2"=sum(agb,na.rm=T),"date2"=mean(date,na.rm=T),"Nstem2"=length(agb[status1 != "D"])),by=treeID]
 		BB2 <- merge(B2,A2,by="treeID",all.x=T)
 		cens2 <- BB2[,c("treeID","dbh2","dbhc2","status2","code2","hom2","agb2","date2","Nstem2")]
 
@@ -491,14 +501,19 @@ format_interval <- function(df,flag_stranglers,dbh_stranglers,code.broken=NULL) 
 
 	# Round DBH in 1990
 	if (site=="barro colorado island") {
-	rndown5=function(s) return(5*floor(s/5))
-	DF2[dbhc2<55  & year==1990,"dbhc2":= rndown5(dbhc2),]
-	DF2[dbhc2<55  & year==1990,"agb2":= assignAGB(.SD,site,DBH="dbhc2",H=NULL,use_palm_allometry)$agb,]
+
+	  rndown5=function(s) return(5*floor(s/5))
+	  DF2[dbhc1<55 & dbhc1>0 & dbhc2 < 100 & year==1990,"class1":= rndown5(dbhc1),]
+	  DF2[dbhc2<55 & dbhc2>0 & year==1990,"class2":= rndown5(dbhc2),]
+	  CLASS <- DF2[year==1990,.(median(dbhc2)),by=class2][order(class2)]  # med dbh by class
+
+		DF2[year==1990 & !is.na(class2) & !is.na(class1),c("dbhc1","dbhc2"):= list(CLASS$V1[match(class1,CLASS$class)],CLASS$V1[match(class2,CLASS$class)]),]
+	  DF2[year==1990 & !is.na(class2) & !is.na(class1),c("agb1","agb2"):= list(assignAGB(.SD,site,DBH="dbhc1",H=NULL,use_palm_allometry,palm_list)$agb,assignAGB(.SD,site,DBH="dbhc2",H=NULL,use_palm_allometry,palm_list)$agb),]
 	}
 
 	DF2$int <- (DF2$date2 - DF2$date1)/365.5  # census interval in days
 	DF2[,"dN":=Nstem2 -Nstem1]
-  DF2 <- within(DF2,hom2[status2=="D"] <- hom1[status2=="D"])
+  DF2 <- within(DF2,hom2[is.na(hom2)] <- hom1[is.na(hom2)])
 
 	DF2[,"broken":=ifelse(dbhc2/dbhc1<0.8 & dbhc1>100 & dbhc2 < int*75 & hom2<=hom1,1,0)] # flag large broken main stems to be added to losses
 
@@ -686,7 +701,7 @@ flag_errors <- function(DF,
 
 	DF[, c("prod.rel") := NULL]
 
-	message("Step 5: Errors flagged. Saving formated data into 'data' folder.")
+	message("Step 5: Errors flagged.")
 	DF
 } # end of major.error
 #' Set mean productivity
@@ -856,13 +871,13 @@ create_quad=function(census,grid_size,x="gx",y="gy",fit.in.plot) {
 	{
 		stop('Some trees are outside the plot boundaries. Consider fit.in.plot=T')
 	}
-	if ( round(w_grid) != w_grid | round(h_grid) != h_grid )
+	if ( round(w_grid) != trimws(w_grid) | round(h_grid) != trimws(h_grid ))
 	{
 		stop('Plot width and height must be divisible by grid_size');
 	}
 
 	census$quad<-(ceiling((maxy-miny)/grid_size))*(floor((x1-minx)/grid_size))+(floor((y1-miny)/grid_size)+1)   ## identifiant de cellule unique 1->100 en partant de 0,0
-	if ( max(census$quad,na.rm=T) != n_quadrat )
+	if ( max(census$quad,na.rm=T) != trimws(n_quadrat) )
 	{
 		stop(paste('Quadrat numbering error: expected ',n_quadrat,' quadrats; got ',max(census$quad,na.rm=T),sep=''))
 	}
@@ -927,13 +942,20 @@ trim_growth=function(cens,slope=0.006214,intercept=.9036,err.limit=4,maxgrow=75,
 }
 
 #' Create a dataframe with one row full of missing values.
-#'
 #' @param .names String giving the names of the dataframe to create.
-#'
 #' @return A dataframe.
 #' @keywords internal
 #' @noRd
 receiving_df <- function(.names) {
   na <- as.list(rep(NA, length(.names)))
   stats::setNames(data.frame(na), .names)
+}
+
+
+#' Path to directory containing example data.
+#' @param path Path to a file (with extension) from inst/extdata/.
+#' @return Path to directory containing example data.
+#' @export
+path2data <- function(path) {
+  system.file("extdata", path, package = "AGBfluxes")
 }
