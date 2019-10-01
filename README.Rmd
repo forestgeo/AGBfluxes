@@ -80,14 +80,31 @@ Resulting data set can further be used to compute AGB fluxes at a site (as descr
 ## Installation
  You can install the released version of AGBfluxes from
 [CRAN](https://CRAN.R-project.org) with:
- ``` r
+ 
+``` r
 # install.packages("devtools")
 devtools::install_github("AGBfluxes")
 ```
 
+## Step-by-step running
 
-## Example
 
-`data_preparation()` outputs a data.table, which has a special `print()` method.
+library(AGBfluxes)
+path <- path2data("data")  # point towards the data folder
+
+DF <- data_preparation(site="barro colorado island",
+	stem=T,
+	dbh_units="mm",
+	use.CTFS.WD=T,
+	taper_correction=T,
+	fill_missing=T,
+	use_palm_allometry=T,
+	flag_stranglers=T,
+	dbh_stranglers=500,
+	max_prod=.2,
+	output_errors=F,
+	DATA_path = path,
+	exclude_interval = NULL)
+
 
 
