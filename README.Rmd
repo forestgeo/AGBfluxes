@@ -19,6 +19,14 @@ knitr::opts_chunk$set(
 <!-- [![CRAN status](https://www.r-pkg.org/badges/version/AGBfluxes)](https://cran.r-project.org/package=AGBfluxes) -->
 <!--  [![Coverage status](https://coveralls.io/repos/github/forestgeo/AGBfluxes/badge.svg)](https://coveralls.io/r/forestgeo/AGBfluxes?branch=master) -->
 
+## Project and contributors
+This package was developped to test for a directional change in forest dynamics across ForestGEO sites. The main author is Ervan Rutishauser (er.rutishauser@gmail.com), former Smithsonian Tropical Research Institute Post-doc, with contribution from Helene Muller-Landau (current administrator; MullerH@si.edu) and Mauro Lepore.
+To cite this code please cite the following publication:
+
+**Rutishauser, E., Wright, S. J., Condit, R., Hubbell, S. P., Davies, S. J., & Muller‐Landau, H. C. (2019). Testing for changes in biomass dynamics in large-scale forest datasets. Global Change Biology, 0(ja). https://doi.org/10.1111/gcb.14833**
+
+
+
 ## Main purpose of the package
 This package has a main function **data_preparation()** that works either at stem (stem=T) or tree (stem=F) levels, and works in 2 steps:
  
