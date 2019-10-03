@@ -14,7 +14,7 @@ To cite this code, please cite the following publication:
 
 **Rutishauser, E., Wright, S. J., Condit, R., Hubbell, S. P., Davies, S. J., & Muller‐Landau, H. C. (2019). Testing for changes in biomass dynamics in large-scale forest datasets. Global Change Biology, 0(ja). https://doi.org/10.1111/gcb.14833**
 
-<img src="https://i.imgur.com/Z1BJo8D.png" align="right" height=88 />
+<img src="https://i.imgur.com/Z1BJo8D.png" align="center"/>
 
 Main purpose of the package
 ---------------------------
